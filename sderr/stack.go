@@ -1,13 +1,17 @@
 package sderr
 
 import (
+	"fmt"
 	"runtime"
 	"slices"
+	"strings"
 )
 
 var (
 	StackTraceMaxDepth = 10
 )
+
+type packageTag struct{}
 
 type Frame struct {
 	PC   uintptr
@@ -21,6 +25,7 @@ type Stack struct {
 }
 
 func newStacktrace() *Stack {
+	goRoot := runtime.GOROOT()
 	var frames []Frame
 	for i := 0; i < StackTraceMaxDepth; i++ {
 		pc, file, line, ok := runtime.Caller(i)
@@ -31,22 +36,28 @@ func newStacktrace() *Stack {
 		if f == nil {
 			break
 		}
-		file, fn := trimFilename(file), trimFunc(f)
-		frames = append(frames, Frame{pc, file, fn, line})
+		isGoRoot := goRoot != "" && strings.Contains(file, goRoot)
+		if !isGoRoot {
+			frames = append(frames, Frame{pc, file, trimFunc(f), line})
+		}
 	}
+	slices.Reverse(frames)
 	return &Stack{frames: frames}
 }
 
 func (s *Stack) Frames() []Frame {
+	if s == nil {
+		return nil
+	}
 	return slices.Clone(s.frames)
 }
 
-func trimFilename(file string) string {
-	// TODO
-	return file
+func (f Frame) String() string {
+	return fmt.Sprintf("%s:%d %s()", f.File, f.Line, f.Func)
 }
 
 func trimFunc(f *runtime.Func) string {
-	// TODO
-	return f.Name()
+	longName := f.Name()
+	shortName := longName[strings.LastIndex(longName, "/")+1:]
+	return shortName
 }
