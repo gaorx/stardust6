@@ -2,6 +2,7 @@ package sderr
 
 import (
 	"fmt"
+	"reflect"
 	"runtime"
 	"slices"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 var (
 	StackTraceMaxDepth = 10
+	packageName        = reflect.TypeOf(packageTag{}).PkgPath()
 )
 
 type packageTag struct{}
@@ -36,8 +38,10 @@ func newStacktrace() *Stack {
 		if f == nil {
 			break
 		}
-		isGoRoot := goRoot != "" && strings.Contains(file, goRoot)
-		if !isGoRoot {
+		isGoPkg := goRoot != "" && strings.Contains(file, goRoot)
+		isSderrPkg := strings.Contains(f.Name(), packageName)
+		isTestPkg := strings.HasSuffix(file, "_test.go")
+		if !isGoPkg && (!isSderrPkg || isTestPkg) {
 			frames = append(frames, Frame{pc, file, trimFunc(f), line})
 		}
 	}
