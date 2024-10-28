@@ -151,5 +151,5 @@ func TestRoot(t *testing.T) {
 	// root stack
 	frames := RootStack(err4).Frames()
 	is.True(len(frames) > 1)
-	is.True(strings.Contains(frames[1].Func, "newErr1"))
+	is.True(strings.Contains(frames[0].Func, "newErr1"))
 }

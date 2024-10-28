@@ -45,7 +45,6 @@ func newStacktrace() *Stack {
 			frames = append(frames, Frame{pc, file, trimFunc(f), line})
 		}
 	}
-	slices.Reverse(frames)
 	return &Stack{frames: frames}
 }
 
