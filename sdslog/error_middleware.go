@@ -16,7 +16,7 @@ func E(err error) Attr {
 	return slog.Any(ErrorKey, err)
 }
 
-func expandError(h Handler) Handler {
+func ExpandSderrError(h Handler) Handler {
 	expandError := func(a Value) Value {
 		err, ok := a.Any().(error)
 		if !ok || err == nil {
@@ -28,7 +28,9 @@ func expandError(h Handler) Handler {
 		}
 		return slog.GroupValue(values...)
 	}
-	return slogformatter.NewFormatterHandler(
-		slogformatter.FormatByKey(ErrorKey, expandError),
-	)(h)
+	return Format(FormatByKey(ErrorKey, expandError))(h)
+}
+
+func ExpandGenericError(h Handler) Handler {
+	return Format(slogformatter.ErrorFormatter("error"))(h)
 }

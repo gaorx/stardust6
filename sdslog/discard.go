@@ -2,9 +2,14 @@ package sdslog
 
 import (
 	"context"
+	"log/slog"
 )
 
-var DiscardHandler Handler = discardHandler{}
+var (
+	DiscardHandler    Handler    = discardHandler{}
+	DiscardMiddleware Middleware = discardMiddleware
+	DiscardLogger     *Logger    = slog.New(DiscardHandler)
+)
 
 type discardHandler struct{}
 
@@ -24,6 +29,6 @@ func (h discardHandler) WithGroup(string) Handler {
 	return h
 }
 
-var DiscardMiddleware Middleware = func(h Handler) Handler {
+func discardMiddleware(h Handler) Handler {
 	return h
 }

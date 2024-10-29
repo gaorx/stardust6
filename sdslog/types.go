@@ -6,6 +6,7 @@ import (
 )
 
 type (
+	Logger     = slog.Logger
 	Handler    = slog.Handler
 	Middleware = slogmulti.Middleware
 	Record     = slog.Record
