@@ -1,14 +1,11 @@
-package sdslogh
+package sdslog
 
 import (
 	"github.com/samber/lo"
 	slogmulti "github.com/samber/slog-multi"
-	"log/slog"
 )
 
-type Middleware = slogmulti.Middleware
-
-func Wrap(h slog.Handler, middlewares ...Middleware) slog.Handler {
+func Wrap(h Handler, middlewares ...Middleware) Handler {
 	middlewares = lo.Filter(middlewares, func(m Middleware, _ int) bool {
 		return m != nil
 	})

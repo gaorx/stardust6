@@ -1,51 +1,34 @@
 package sdslog
 
 import (
-	"context"
-	"fmt"
 	"github.com/gaorx/stardust6/sderr"
+	slogformatter "github.com/samber/slog-formatter"
 	"log/slog"
 )
 
-func (ext Extension) ErrorContext(ctx context.Context, msg string, err error) {
-	if err == nil {
-		return
-	}
-	if msg != "" {
-		msg = msg + ": " + err.Error()
-	} else {
-		msg = err.Error()
-	}
-	errAttrs := sderr.Attrs(err)
-	var logAttrs []slog.Attr
-	for k, v := range errAttrs {
-		if k == "" {
-			continue
+const ErrorKey = "error"
+
+func ErrorValue(err error) Value {
+	return slog.AnyValue(err)
+}
+
+func E(err error) Attr {
+	return slog.Any(ErrorKey, err)
+}
+
+func expandError(h Handler) Handler {
+	expandError := func(a Value) Value {
+		err, ok := a.Any().(error)
+		if !ok || err == nil {
+			return a
 		}
-		logAttrs = append(logAttrs, slog.Any(k, v))
-	}
-	if false { // 这里可以打印root stack的栈顶frame
-		rootStackFrames := sderr.RootStack(err).Frames()
-		if len(rootStackFrames) > 0 {
-			topFrame := rootStackFrames[0]
-			logAttrs = append(logAttrs, slog.Attr{
-				Key:   "stacktrace",
-				Value: slog.StringValue(fmt.Sprintf("%s:%d", topFrame.File, topFrame.Line)),
-			})
+		values := []Attr{slog.String("msg", err.Error())}
+		for k, v := range sderr.Attrs(err) {
+			values = append(values, slog.Any(k, v))
 		}
+		return slog.GroupValue(values...)
 	}
-
-	ext.Logger.LogAttrs(ctx, slog.LevelError, msg, logAttrs...)
-}
-
-func (ext Extension) Error(msg string, err error) {
-	ext.ErrorContext(context.Background(), msg, err)
-}
-
-func ErrorContext(ctx context.Context, msg string, err error) {
-	X(slog.Default()).ErrorContext(ctx, msg, err)
-}
-
-func Error(msg string, err error) {
-	X(slog.Default()).ErrorContext(context.Background(), msg, err)
+	return slogformatter.NewFormatterHandler(
+		slogformatter.FormatByKey(ErrorKey, expandError),
+	)(h)
 }

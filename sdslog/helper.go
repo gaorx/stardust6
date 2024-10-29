@@ -1,11 +1,9 @@
-package sdslogh
+package sdslog
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/gaorx/stardust6/sderr"
 	"github.com/mattn/go-isatty"
-	slogformatter "github.com/samber/slog-formatter"
 	"io"
 	"log/slog"
 	"os"
@@ -69,8 +67,8 @@ func newWriter(w io.Writer, file string, bufferSize int) (io.Writer, bool, error
 	}
 }
 
-func setTimeFormat(format string, replaceAttr func(groups []string, a slog.Attr) slog.Attr) func(groups []string, a slog.Attr) slog.Attr {
-	return func(groups []string, a slog.Attr) slog.Attr {
+func setTimeFormat(format string, replaceAttr func(groups []string, a Attr) Attr) func(groups []string, a Attr) Attr {
+	return func(groups []string, a Attr) Attr {
 		if replaceAttr != nil {
 			a = replaceAttr(groups, a)
 		}
@@ -81,21 +79,4 @@ func setTimeFormat(format string, replaceAttr func(groups []string, a slog.Attr)
 		a.Value = slog.StringValue(t.Format(format))
 		return a
 	}
-}
-
-func expandError(h slog.Handler) slog.Handler {
-	expandErr := func(err error) slog.Value {
-		if err == nil {
-			return slog.StringValue("<nil>")
-		}
-		values := []slog.Attr{slog.String("msg", err.Error())}
-		for k, v := range sderr.Attrs(err) {
-			values = append(values, slog.String(k, fmt.Sprintf("%v", v)))
-		}
-		// values = append(values, slog.("rootstack", "-a\n-b"))
-		return slog.GroupValue(values...)
-	}
-	return slogformatter.NewFormatterHandler(
-		slogformatter.FormatByFieldType("error", expandErr),
-	)(h)
 }
