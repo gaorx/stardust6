@@ -8,6 +8,8 @@ import (
 
 type Formatter = slogformatter.Formatter
 
+// Format 构造一个用于格式化Record中的Attr值的middleware，支持多个Formatter来构造，
+// 而formatter则是通过下面的FormatKey...来构建
 func Format(formatters ...Formatter) Middleware {
 	formatters = lo.Filter(formatters, func(f Formatter, _ int) bool {
 		return f != nil

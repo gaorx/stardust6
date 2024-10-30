@@ -12,7 +12,7 @@ import (
 
 func isStdoutFile(file string) bool {
 	file = strings.ToLower(file)
-	return file == "" || file == "stdout"
+	return file == "stdout"
 }
 
 func isStderrFile(file string) bool {
@@ -29,12 +29,12 @@ func isTerm(fd uintptr) bool {
 	return isatty.IsTerminal(fd) || isatty.IsCygwinTerminal(fd)
 }
 
-func isStdoutTerm() bool {
+func isStdoutTTY() bool {
 	fd := os.Stdout.Fd()
 	return isTerm(fd)
 }
 
-func isStderrTerm() bool {
+func isStderrTTY() bool {
 	fd := os.Stderr.Fd()
 	return isTerm(fd)
 }
@@ -48,10 +48,12 @@ func newWriter(w io.Writer, file string, bufferSize int) (io.Writer, bool, error
 			return w, false, nil
 		}
 	}
-	if isStdoutFile(file) {
-		return os.Stdout, isStdoutTerm(), nil
+	if file == "" {
+		return nil, false, sderr.Newf("file is empty")
+	} else if isStdoutFile(file) {
+		return os.Stdout, isStdoutTTY(), nil
 	} else if isStderrFile(file) {
-		return os.Stderr, isStderrTerm(), nil
+		return os.Stderr, isStderrTTY(), nil
 	} else if isDiscardFile(file) {
 		return io.Discard, false, nil
 	} else {

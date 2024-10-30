@@ -6,9 +6,9 @@ import (
 )
 
 var (
-	DiscardHandler    Handler    = discardHandler{}
-	DiscardMiddleware Middleware = discardMiddleware
-	DiscardLogger     *Logger    = slog.New(DiscardHandler)
+	DiscardHandler    Handler    = discardHandler{}         // 不输出任何日志的Handler
+	DiscardMiddleware Middleware = discardMiddleware        // 不做任何处理的Middleware
+	DiscardLogger     *Logger    = slog.New(DiscardHandler) // 不输出任何日志的Logger
 )
 
 type discardHandler struct{}

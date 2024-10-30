@@ -12,6 +12,7 @@ type (
 	InterceptWithGroupFunc = func(name string, next func(string) Handler) Handler
 )
 
+// InterceptAll 拦截所有的日志处理函数，用于构造一个middleware
 func InterceptAll(
 	enabledFunc InterceptEnabledFunc,
 	handleFunc InterceptHandleFunc,
@@ -51,6 +52,7 @@ func InterceptEnabled(enabledFunc InterceptEnabledFunc) Middleware {
 	return slogmulti.NewEnabledInlineMiddleware(enabledFunc)
 }
 
+// InterceptHandle 拦截日志处理函数，用于构造一个middleware，用于在输出record前后做些事情，例如修改record中的信息
 func InterceptHandle(handleFunc InterceptHandleFunc) Middleware {
 	if handleFunc == nil {
 		return DiscardMiddleware
