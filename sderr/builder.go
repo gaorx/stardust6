@@ -7,14 +7,17 @@ import (
 
 type Builder Error
 
+// With 创建一个error builder，带有一个Attr
 func With(k string, v any) Builder {
 	return newBuilder().With(k, v)
 }
 
+// WithSome 创建一个error builder，带有多个Attr
 func WithSome(attrs map[string]any) Builder {
 	return newBuilder().WithSome(attrs)
 }
 
+// With 附加一个Attr到Builder
 func (b Builder) With(k string, v any) Builder {
 	if k != "" {
 		if v1, ok := evalAttrValue(v); ok {
@@ -24,6 +27,7 @@ func (b Builder) With(k string, v any) Builder {
 	return b
 }
 
+// WithSome 附加多个Attr到Builder
 func (b Builder) WithSome(attrs map[string]any) Builder {
 	for k, v := range attrs {
 		if k != "" {
@@ -35,14 +39,17 @@ func (b Builder) WithSome(attrs map[string]any) Builder {
 	return b
 }
 
+// Newf 构建一个带有stacktrace的error，并携带一个可读消息
 func (b Builder) Newf(msg string, a ...any) error {
 	return b.Wrap(fmt.Errorf(msg, a...))
 }
 
+// Wrap 构建一个带有stacktrace的error，用于wrap一个现存的error
 func (b Builder) Wrap(err error) error {
 	return b.Wrapf(err, "")
 }
 
+// Wrapf 构建一个带有stacktrace的error，用于wrap一个现存的error，并附加一个可读消息
 func (b Builder) Wrapf(err error, msg string, a ...any) error {
 	if err == nil {
 		return nil
@@ -55,10 +62,12 @@ func (b Builder) Wrapf(err error, msg string, a ...any) error {
 	return (*Error)(&b2)
 }
 
+// Recover 构建一个带有stacktrace的error，并携带一个函数的panic信息
 func (b Builder) Recover(f func()) (err error) {
 	return b.Recoverf(f, "")
 }
 
+// Recoverf 构建一个带有stacktrace的error，并携带一个函数的panic信息和一个可读消息
 func (b Builder) Recoverf(f func(), msg string, a ...any) (err error) {
 	defer func() {
 		if r := recover(); r != nil {

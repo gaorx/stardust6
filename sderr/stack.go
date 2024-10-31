@@ -9,21 +9,23 @@ import (
 )
 
 var (
-	StackTraceMaxDepth = 10
+	StackTraceMaxDepth = 10 // 默认的stack最大深度
 	packageName        = reflect.TypeOf(packageTag{}).PkgPath()
 )
 
 type packageTag struct{}
 
+// Frame 栈上的一帧
 type Frame struct {
 	PC   uintptr
-	File string
-	Func string
-	Line int
+	File string // 文件名
+	Func string // 函数名
+	Line int    // 行号
 }
 
+// Stack 一个stacktrace
 type Stack struct {
-	frames []Frame
+	frames []Frame // stack上的所有帧
 }
 
 func newStacktrace() *Stack {
@@ -48,6 +50,7 @@ func newStacktrace() *Stack {
 	return &Stack{frames: frames}
 }
 
+// Frames 灰灰一个stacktrace上的所有帧
 func (s *Stack) Frames() []Frame {
 	if s == nil {
 		return nil
@@ -55,6 +58,7 @@ func (s *Stack) Frames() []Frame {
 	return slices.Clone(s.frames)
 }
 
+// String 返回一帧的字符串描述
 func (f Frame) String() string {
 	return fmt.Sprintf("%s:%d %s()", f.File, f.Line, f.Func)
 }

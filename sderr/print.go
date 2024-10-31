@@ -7,22 +7,26 @@ import (
 	"strings"
 )
 
+// PrintOptions 用于控制Print函数的输出
 type PrintOptions struct {
-	Unwrap         bool
+	Unwrap         bool // 是否展开多层wrap
 	Stack          bool
 	FrameFormatter func(f Frame) string
 }
 
+// Print 打印一个error到标准输出
 func Print(err error, opts *PrintOptions) {
 	_ = Fprint(os.Stdout, err, opts)
 }
 
+// Sprint 返回一个error的字符串
 func Sprint(err error, opts *PrintOptions) string {
 	var b strings.Builder
 	_ = Fprint(&b, err, opts)
 	return b.String()
 }
 
+// Fprint 打印一个error到一个输出流
 func Fprint(w io.Writer, err error, opts *PrintOptions) error {
 	if err == nil {
 		return nil
@@ -47,11 +51,7 @@ func Fprint(w io.Writer, err error, opts *PrintOptions) error {
 	}
 
 	if !opts.Unwrap {
-		if e, ok := Probe(err); ok {
-			_, errPrint = fmt.Fprintln(w, makeMsgWithAttrs("", e.Error(), Attrs(e)))
-		} else {
-			_, errPrint = fmt.Fprintln(w, quote(err.Error()))
-		}
+		_, errPrint = fmt.Fprintln(w, err.Error())
 		if errPrint != nil {
 			return Wrap(errPrint)
 		}
@@ -71,9 +71,9 @@ func Fprint(w io.Writer, err error, opts *PrintOptions) error {
 				prefix = "ROOT: "
 			}
 			if e, ok := Probe(unwrappedErr); ok {
-				_, errPrint = fmt.Fprintln(w, makeMsgWithAttrs(prefix, e.Message(), e.OwnAttrs()))
+				_, errPrint = fmt.Fprintln(w, prefix+makeMsgWithAttrs(e.Msg(), e.OwnAttrs()))
 			} else {
-				_, errPrint = fmt.Fprintln(w, prefix+quote(unwrappedErr.Error()))
+				_, errPrint = fmt.Fprintln(w, prefix+(unwrappedErr.Error()))
 			}
 			if errPrint != nil {
 				return Wrap(errPrint)
@@ -91,18 +91,25 @@ func Fprint(w io.Writer, err error, opts *PrintOptions) error {
 	}
 }
 
-func makeMsgWithAttrs(prefix, msg string, attrs map[string]any) string {
+func makeMsgWithAttrs(msg string, attrs map[string]any) string {
 	var b strings.Builder
-	b.WriteString(prefix)
-	b.WriteString(quote(msg))
+	b.WriteString(msg)
 	if len(attrs) > 0 {
+		if msg != "" {
+			b.WriteString(" ")
+		}
+		b.WriteString("[")
+		i := 0
 		for k, v := range attrs {
-			b.WriteString(" [")
+			if i > 0 {
+				b.WriteString(" ")
+			}
+			i += 1
 			b.WriteString(k)
 			b.WriteString("=")
-			b.WriteString(quote(fmt.Sprintf("%v", v)))
-			b.WriteString("]")
+			b.WriteString(fmt.Sprintf("%v", v))
 		}
+		b.WriteString("]")
 	}
 	return b.String()
 }

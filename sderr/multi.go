@@ -5,16 +5,19 @@ import (
 	"strings"
 )
 
+// MultiError 一种error，包含多个error
 type MultiError struct {
 	Errs []error
 }
 
 var _ error = (*MultiError)(nil)
 
+// Join 将多个error合并成一个error
 func Join(errs ...error) error {
 	return Append(nil, errs...)
 }
 
+// Append 将多个error追加到一个error后面，并返回新的error
 func Append(err error, errs ...error) error {
 	var all []error
 	add := func(err0 error) {
@@ -47,6 +50,7 @@ func Append(err error, errs ...error) error {
 	}
 }
 
+// Error 实现Error.Error
 func (e *MultiError) Error() string {
 	if e == nil {
 		return ""
@@ -62,6 +66,7 @@ func (e *MultiError) Error() string {
 	}
 }
 
+// Lines 返回每个error的可读消息，每行一个，并且每行可以附加一个前缀
 func (e *MultiError) Lines(prefix string) []string {
 	if e == nil {
 		return nil
@@ -79,6 +84,7 @@ func (e *MultiError) Lines(prefix string) []string {
 	return lines
 }
 
+// Unwrap 实现errors包的Unwrap
 func (e *MultiError) Unwrap() []error {
 	if e == nil {
 		return nil
@@ -86,6 +92,7 @@ func (e *MultiError) Unwrap() []error {
 	return e.Errs
 }
 
+// Empty 返回是否包含有其他错误信息
 func (e *MultiError) Empty() bool {
 	if e == nil {
 		return true

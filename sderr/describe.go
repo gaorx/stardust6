@@ -4,23 +4,27 @@ import (
 	"encoding/json"
 )
 
+// DescribeOptions 描述一个错误的选项
 type DescribeOptions struct {
-	Unwrap         bool
-	Stack          bool
-	FrameFormatter func(f Frame) string
+	Unwrap         bool                 // 是否展开多层wrap
+	Stack          bool                 // 是否加入stack信息
+	FrameFormatter func(f Frame) string // 自定义如何格式化一个stack frame
 }
 
+// Description 对一个error的描述信息，其中包含root和多层wrap
 type Description struct {
 	Root  DescriptionItem   `json:"root"`
 	Wraps []DescriptionItem `json:"wraps,omitempty"`
 }
 
+// DescriptionItem 描述wrap中的一层error信息
 type DescriptionItem struct {
 	Msg   string         `json:"msg"`
 	Attrs map[string]any `json:"attrs,omitempty"`
 	Stack []string       `json:"stack,omitempty"`
 }
 
+// Describe 描述一个error,生成一个结构化的信息
 func Describe(err error, opts *DescribeOptions) *Description {
 	if err == nil {
 		return nil
@@ -62,9 +66,9 @@ func Describe(err error, opts *DescribeOptions) *Description {
 			isRoot := i >= len(unwrappedErrs)-1
 			if e, ok := Probe(unwrappedErr); ok {
 				if isRoot {
-					res.Root = makeItem(e.Message(), e.OwnAttrs(), e.stack)
+					res.Root = makeItem(e.Msg(), e.OwnAttrs(), e.stack)
 				} else {
-					res.Wraps = append(res.Wraps, makeItem(e.Message(), e.OwnAttrs(), e.stack))
+					res.Wraps = append(res.Wraps, makeItem(e.Msg(), e.OwnAttrs(), e.stack))
 				}
 			} else {
 				if isRoot {
@@ -78,6 +82,7 @@ func Describe(err error, opts *DescribeOptions) *Description {
 	return &res
 }
 
+// Json 将一个Description转换成JSON
 func (d *Description) Json(pretty bool) string {
 	if d == nil {
 		return ""

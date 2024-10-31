@@ -9,10 +9,12 @@ type unwrappable interface {
 	Unwrap() error
 }
 
+// Is 相当于errors.Is
 func Is(err, target error) bool {
 	return errors.Is(err, target)
 }
 
+// As errors.As的范型版
 func As[T any](err error) (T, bool) {
 	var target T
 	if ok := errors.As(err, &target); ok {
@@ -23,6 +25,7 @@ func As[T any](err error) (T, bool) {
 	}
 }
 
+// Ensure 将任何值转换成一个error
 func Ensure(v any) error {
 	if vv, ok := v.(reflect.Value); ok {
 		v = vv.Interface()
@@ -39,22 +42,25 @@ func Ensure(v any) error {
 	}
 }
 
+// Probe 探测一个error是否是*sderr.Error，并且返回*sderr.Error
 func Probe(err error) (*Error, bool) {
 	if e, ok := err.(*Error); ok {
-		return e, true
+		return e, e != nil
 	} else {
 		return nil, false
 	}
 }
 
+// ProbeMulti 探测一个error是否是*sderr.MultiError，并且返回*sderr.MultiError
 func ProbeMulti(err error) (*MultiError, bool) {
 	if e, ok := err.(*MultiError); ok {
-		return e, true
+		return e, e != nil
 	} else {
 		return nil, false
 	}
 }
 
+// Attrs 返回一个error的所有attrs，包括嵌套的多层wrap中的attrs
 func Attrs(err error) map[string]any {
 	if err == nil {
 		return nil
@@ -64,6 +70,7 @@ func Attrs(err error) map[string]any {
 	return merged
 }
 
+// Attr 返回一个error的某个attr，包括嵌套的多层wrap中的attr
 func Attr(err error, k string) (any, bool) {
 	if err == nil {
 		return nil, false
@@ -80,6 +87,7 @@ func Attr(err error, k string) (any, bool) {
 	}
 }
 
+// Unwrap 返回一个error的下一层error
 func Unwrap(err error) error {
 	if err == nil {
 		return nil
@@ -91,6 +99,7 @@ func Unwrap(err error) error {
 	}
 }
 
+// UnwrapNested 返回一个error的所有嵌套的下一层error
 func UnwrapNested(err error) []error {
 	if err == nil {
 		return nil
@@ -109,6 +118,7 @@ func UnwrapNested(err error) []error {
 	return nested
 }
 
+// Root 返回一个error的根cause
 func Root(err error) error {
 	if err == nil {
 		return nil
@@ -120,6 +130,7 @@ func Root(err error) error {
 	}
 }
 
+// RootStack 返回一个error的根cause的stacktrace
 func RootStack(err error) *Stack {
 	if err == nil {
 		return nil
