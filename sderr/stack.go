@@ -2,6 +2,7 @@ package sderr
 
 import (
 	"fmt"
+	"github.com/samber/lo"
 	"reflect"
 	"runtime"
 	"slices"
@@ -58,8 +59,24 @@ func (s *Stack) Frames() []Frame {
 	return slices.Clone(s.frames)
 }
 
+// Top 返回stacktrace上栈顶的帧
+func (s *Stack) Top() Frame {
+	if s == nil || len(s.frames) <= 0 {
+		return Frame{}
+	}
+	return s.frames[0]
+}
+
+// IsEmpty 判断一个frame是否为空
+func (f Frame) IsEmpty() bool {
+	return lo.IsEmpty(f)
+}
+
 // String 返回一帧的字符串描述
 func (f Frame) String() string {
+	if f.IsEmpty() {
+		return ""
+	}
 	return fmt.Sprintf("%s:%d %s()", f.File, f.Line, f.Func)
 }
 

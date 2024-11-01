@@ -1,8 +1,9 @@
 package sdslog
 
 import (
+	"fmt"
 	"github.com/gaorx/stardust6/sderr"
-	slogformatter "github.com/samber/slog-formatter"
+	"github.com/samber/lo"
 	"log/slog"
 )
 
@@ -18,23 +19,32 @@ func E(err error) Attr {
 	return slog.Any(ErrorKey, err)
 }
 
-// ExpandSderrError 一个middleware，用户展开在slog中输出更详细的错误信息，对sderr.Error提供了特别支持，可以展开其中的Attrs作为slog中的attrs
-func ExpandSderrError(h Handler) Handler {
-	expandError := func(a Value) Value {
+// ExpandErrorOptions 展开Error的Options
+type ExpandErrorOptions struct {
+	Stack bool // 是否打印错误的stacktrace
+	Attrs bool // 是否打印sderr中的Attrs
+}
+
+func ExpandError(opts *ExpandErrorOptions) Middleware {
+	opts1 := lo.FromPtr(opts)
+	expand := func(a Value) Value {
 		err, ok := a.Any().(error)
 		if !ok || err == nil {
 			return a
 		}
 		values := []Attr{slog.String("msg", err.Error())}
-		for k, v := range sderr.Attrs(err) {
-			values = append(values, slog.Any(k, v))
+		if opts1.Attrs {
+			attrs := sderr.Attrs(err)
+			for k, v := range attrs {
+				values = append(values, slog.String(k, fmt.Sprintf("%v", v)))
+			}
+		}
+		if opts1.Stack {
+			values = append(values, slog.String("stack", sderr.RootStack(err).Top().String()))
 		}
 		return slog.GroupValue(values...)
 	}
-	return Format(FormatByKey(ErrorKey, expandError))(h)
-}
-
-// ExpandGenericError 一个middleware，用户展开在slog中输出更详细的的错误信息
-func ExpandGenericError(h Handler) Handler {
-	return Format(slogformatter.ErrorFormatter("error"))(h)
+	return func(h Handler) Handler {
+		return Format(FormatByKey(ErrorKey, expand))(h)
+	}
 }
