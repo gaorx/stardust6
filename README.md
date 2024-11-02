@@ -11,6 +11,9 @@
 # 运行所有测试
 make test
 
+# 清除测试缓存后运行所有测试
+make test-clean
+
 # 格式化代码
 make fmt
 
