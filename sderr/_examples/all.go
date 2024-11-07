@@ -80,7 +80,7 @@ func examplePrint() {
 
 	err1 := sderr.With("k1", "v1").Newf("error message")
 
-	// 只打印消息, 和fmt.Println(err1)等效
+	// 只打印消息, 和fmt.Line(err1)等效
 	sderr.Print(err1, nil)
 	separator()
 

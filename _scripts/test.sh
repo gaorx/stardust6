@@ -1,3 +1,13 @@
 #!/bin/bash
-go test github.com/gaorx/stardust6/sderr
-go test github.com/gaorx/stardust6/sdslog
+
+PKG=github.com/gaorx/stardust6
+
+go test $PKG/sderr
+go test $PKG/sdslog
+go test $PKG/sdbytes
+go test $PKG/sdrand
+go test $PKG/sdreflect
+go test $PKG/sdtextenc
+go test $PKG/sdfile
+go test $PKG/sdfile/sdfiletype
+go test $PKG/sdfile/sdhttpfile
