@@ -19,3 +19,11 @@ func RootValueOf(v any) reflect.Value {
 		return reflect.ValueOf(v)
 	}
 }
+
+// Deref 返回一个值的非指针值，如果是指针则递归解引用
+func Deref(v reflect.Value) reflect.Value {
+	if v.Kind() == reflect.Ptr {
+		return Deref(v.Elem())
+	}
+	return v
+}

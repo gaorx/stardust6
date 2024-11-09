@@ -23,3 +23,14 @@ func TestRootValueOf(t *testing.T) {
 		RootValueOf((*reflect.Value)(nil))
 	})
 }
+
+func TestDeref(t *testing.T) {
+	is := assert.New(t)
+
+	var a = 3
+	var pa = &a
+	var ppa = &pa
+	is.Equal(reflect.ValueOf(a).Interface(), Deref(reflect.ValueOf(a)).Interface())
+	is.Equal(reflect.ValueOf(a).Interface(), Deref(reflect.ValueOf(pa)).Interface())
+	is.Equal(reflect.ValueOf(a).Interface(), Deref(reflect.ValueOf(ppa)).Interface())
+}

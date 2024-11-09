@@ -11,3 +11,7 @@ go test $PKG/sdtextenc
 go test $PKG/sdfile
 go test $PKG/sdfile/sdfiletype
 go test $PKG/sdfile/sdhttpfile
+go test $PKG/sdcodegen
+go test $PKG/sdcodegen/sdgogen
+go test $PKG/sdjson
+go test $PKG/sdresty

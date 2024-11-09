@@ -2,9 +2,11 @@ package sdcodegen
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/gaorx/stardust6/sderr"
 	"github.com/gaorx/stardust6/sdreflect"
+	"github.com/gaorx/stardust6/sdresty"
 	"github.com/samber/lo"
 	"reflect"
 )
@@ -145,6 +147,14 @@ func (c *Context) Logf(format string, a ...any) {
 	c.logger.Log(fmt.Sprintf(format, a...))
 }
 
+// Apply 执行一个函数
+func (c *Context) Apply(f func()) *Context {
+	if f != nil {
+		f()
+	}
+	return c
+}
+
 // WriteBytes 写入字节数据
 func (c *Context) WriteBytes(data []byte) *Context {
 	buff := c.getBuff()
@@ -245,7 +255,7 @@ func (c *Context) IfElse(b bool, v1, v2 any) *Context {
 // ForEach 遍历数组或切片，对每个元素执行action，可以用来打印切片中的每个元素
 func (c *Context) ForEach(a any, action func(elem any, i, n int)) *Context {
 	a1 := sdreflect.RootValueOf(a)
-	if !sdreflect.IsSliceLikeValue(a1) {
+	if !sdreflect.IsSliceLike(a1.Type(), nil) {
 		panic(sderr.Newf("not a slice or array"))
 	}
 	sdreflect.ForEach(a1, func(elem reflect.Value, i, n int) {
@@ -287,6 +297,16 @@ func (c *Context) GenerateText(g Handler, middlewares ...Middleware) string {
 	text, err := GenerateText(g, middlewares...)
 	if err != nil {
 		panic(sderr.Wrap(err))
+	}
+	return text
+}
+
+// CURL 从一个URL获取文本
+func (c *Context) CURL(url string) string {
+	rc := sdresty.New(nil)
+	text, err := sdresty.CURL(context.Background(), rc, url)
+	if err != nil {
+		panic(sderr.With("url", url).Wrapf(err, "CURL failed"))
 	}
 	return text
 }
