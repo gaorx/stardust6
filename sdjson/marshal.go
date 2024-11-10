@@ -108,8 +108,8 @@ func UnmarshalValueString(s string) (Value, error) {
 	}
 }
 
-// UnmarshalValueDef 将字节数组反序列化为Value，失败时返回默认值
-func UnmarshalValueDef(j []byte, def any) Value {
+// UnmarshalValueBytesDef 将字节数组反序列化为Value，失败时返回默认值
+func UnmarshalValueBytesDef(j []byte, def any) Value {
 	v, err := UnmarshalValueBytes(j)
 	if err != nil {
 		return V(def)
@@ -119,5 +119,5 @@ func UnmarshalValueDef(j []byte, def any) Value {
 
 // UnmarshalValueStringDef 反序列化一个JSON格式字符串到Value，失败时返回默认值
 func UnmarshalValueStringDef(s string, def any) Value {
-	return UnmarshalValueDef([]byte(s), def)
+	return UnmarshalValueBytesDef([]byte(s), def)
 }

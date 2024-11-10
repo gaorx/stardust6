@@ -2,4 +2,3 @@
 * sdslog: 写单元测试
 * sdjson: 补更多的单元测试
 * sdcodegen/sdgogen: 补充动能，注释，单元测试和例子
-* sdresty: 补充动能，注释，单元测试和例子
