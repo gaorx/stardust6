@@ -10,7 +10,7 @@ import (
 func TestEncoding(t *testing.T) {
 	is := assert.New(t)
 	a := sdrand.Bytes(8192)
-	is.Equal(a, lo.Must(FormHex(ToHex(a))))
+	is.Equal(a, lo.Must(FromHex(ToHexL(a))))
 	is.Equal(a, lo.Must(FromBase64Std(ToBase64Std(a))))
 	is.Equal(a, lo.Must(FromBase64Url(ToBase64Url(a))))
 }

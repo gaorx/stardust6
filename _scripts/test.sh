@@ -15,3 +15,11 @@ go test $PKG/sdcodegen
 go test $PKG/sdcodegen/sdgogen
 go test $PKG/sdjson
 go test $PKG/sdresty
+go test $PKG/sdcompress/sdgzip
+go test $PKG/sdcompress/sdzip
+go test $PKG/sdcompress/sdlz4
+go test $PKG/sdhash/sdmd5
+go test $PKG/sdhash/sdsha256
+go test $PKG/sdhash/sdsha512
+go test $PKG/sdjwt
+go test $PKG/sdload
