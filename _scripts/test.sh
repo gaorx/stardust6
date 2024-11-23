@@ -23,3 +23,11 @@ go test $PKG/sdhash/sdsha256
 go test $PKG/sdhash/sdsha512
 go test $PKG/sdjwt
 go test $PKG/sdload
+go test $PKG/sdparse
+go test $PKG/sdtime
+go test $PKG/sdreflect
+go test $PKG/sdtemplate
+go test $PKG/sdregexp
+go test $PKG/sdstrings
+go test $PKG/sdlocal
+go test $PKG/sdsnowflake

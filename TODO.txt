@@ -1,3 +1,6 @@
 
 * sdslog: 写单元测试
 * sdcodegen/sdgogen: 补充动能，注释，单元测试和例子
+* sdparse: 加入文档
+* sdtime: 加入文档
+* sdtemplate: 加入文档

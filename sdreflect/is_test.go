@@ -1,6 +1,7 @@
 package sdreflect
 
 import (
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -28,4 +29,14 @@ func TestIs(t *testing.T) {
 	is.True(IsMap(reflect.TypeOf(map[int]string{}), nil, reflect.TypeOf("")))
 	is.True(IsMap(reflect.TypeOf(map[int]string{}), reflect.TypeOf(0), reflect.TypeOf("")))
 	is.False(IsMap(reflect.TypeOf(map[int]string{}), nil, reflect.TypeOf(0)))
+
+	is.True(IsTypes1[int](ToTypes(1)))
+	is.True(IsTypes2[int, string](ToTypes(1, "a")))
+	is.True(IsTypes3[int, string, bool](ToTypes(1, "a", true)))
+	is.False(IsTypes4[int, string, bool, error](ToTypes(1, "a", true, errors.New("xx"))))
+
+	is.True(IsAssignableTypes1[int](ToTypes(1)))
+	is.True(IsAssignableTypes2[int, string](ToTypes(1, "a")))
+	is.True(IsAssignableTypes3[int, string, bool](ToTypes(1, "a", true)))
+	is.True(IsAssignableTypes4[int, string, bool, error](ToTypes(1, "a", true, errors.New("xx"))))
 }

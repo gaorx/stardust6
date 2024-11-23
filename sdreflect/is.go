@@ -58,3 +58,75 @@ func IsMap(t reflect.Type, keyType, valueType reflect.Type) bool {
 	}
 	return true
 }
+
+// IsTypes 判断一个类型列表是否是指定的类型列表，如果为都为空则返回true
+func IsTypes(actual []reflect.Type, expectant ...reflect.Type) bool {
+	if len(actual) != len(expectant) {
+		return false
+	}
+	if len(actual) == 0 {
+		return true
+	}
+	for i, t := range actual {
+		if t != expectant[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// IsAssignableTypes 判断值列表的类型是否是可赋值到指定类型列表，如果为都为空则返回true
+func IsAssignableTypes(actual []reflect.Type, expectant ...reflect.Type) bool {
+	if len(actual) != len(expectant) {
+		return false
+	}
+	if len(actual) == 0 {
+		return true
+	}
+	for i, t := range actual {
+		if !t.AssignableTo(expectant[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// IsTypes1 判断类型列表是否是[T1]
+func IsTypes1[T1 any](actual []reflect.Type) bool {
+	return IsTypes(actual, T[T1]())
+}
+
+// IsTypes2 判断类型列表是否是[T1,T2]
+func IsTypes2[T1, T2 any](actual []reflect.Type) bool {
+	return IsTypes(actual, T[T1](), T[T2]())
+}
+
+// IsTypes3 判断类型列表是否是[T1,T2,T3]
+func IsTypes3[T1, T2, T3 any](actual []reflect.Type) bool {
+	return IsTypes(actual, T[T1](), T[T2](), T[T3]())
+}
+
+// IsTypes4 判断类型列表是否是[T1,T2,T3,T4]
+func IsTypes4[T1, T2, T3, T4 any](actual []reflect.Type) bool {
+	return IsTypes(actual, T[T1](), T[T2](), T[T3](), T[T4]())
+}
+
+// IsAssignableTypes1 判断类型列表的类型是否是可赋值到[T1]
+func IsAssignableTypes1[T1 any](actual []reflect.Type) bool {
+	return IsAssignableTypes(actual, T[T1]())
+}
+
+// IsAssignableTypes2 判类型列表的类型是否是可赋值到[T1,T2]
+func IsAssignableTypes2[T1, T2 any](actual []reflect.Type) bool {
+	return IsAssignableTypes(actual, T[T1](), T[T2]())
+}
+
+// IsAssignableTypes3 判断类型列表的类型是否是可赋值到[T1,T2,T3]
+func IsAssignableTypes3[T1, T2, T3 any](actual []reflect.Type) bool {
+	return IsAssignableTypes(actual, T[T1](), T[T2](), T[T3]())
+}
+
+// IsAssignableTypes4 判断类型列表的类型是否是可赋值到[T1,T2,T3,T4]
+func IsAssignableTypes4[T1, T2, T3, T4 any](actual []reflect.Type) bool {
+	return IsAssignableTypes(actual, T[T1](), T[T2](), T[T3](), T[T4]())
+}

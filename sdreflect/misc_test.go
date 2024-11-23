@@ -34,3 +34,23 @@ func TestDeref(t *testing.T) {
 	is.Equal(reflect.ValueOf(a).Interface(), Deref(reflect.ValueOf(pa)).Interface())
 	is.Equal(reflect.ValueOf(a).Interface(), Deref(reflect.ValueOf(ppa)).Interface())
 }
+
+func TestTypesOf(t *testing.T) {
+	is := assert.New(t)
+	is.EqualValues(
+		[]reflect.Type{TString, TInt, TBool},
+		ToTypes("a", 1, true),
+	)
+	is.EqualValues(
+		[]reflect.Type{TString, TInt, TBool},
+		TypesOf(ToValues("a", 1, true)),
+	)
+}
+
+func TestToInterfaces(t *testing.T) {
+	is := assert.New(t)
+	is.EqualValues(
+		[]any{"a", 1, true},
+		ToInterfaces(ToValues("a", 1, true)...),
+	)
+}
