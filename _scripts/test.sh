@@ -31,3 +31,4 @@ go test $PKG/sdregexp
 go test $PKG/sdstrings
 go test $PKG/sdlocal
 go test $PKG/sdsnowflake
+go test $PKG/sdsecurity/sdauthn

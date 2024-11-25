@@ -2,6 +2,7 @@ package sdauthn
 
 import (
 	"context"
+	"github.com/samber/lo"
 	"slices"
 	"time"
 )
@@ -15,34 +16,32 @@ type SimpleUser struct {
 	Phone       string    `json:"phone,omitempty"`
 	AvatarUrl   string    `json:"avatarUrl,omitempty"`
 	Nickname    string    `json:"nickname,omitempty"`
+	Disabled    bool      `json:"disabled,omitempty"`
 	Locked      bool      `json:"locked,omitempty"`
 	Expiry      time.Time `json:"expiry,omitempty"`
 }
 
 func SimpleUsers(users []*SimpleUser) Loader {
-	m := make(map[string]*SimpleUser)
-	for _, u := range users {
-		if u == nil {
-			continue
+	users = lo.Filter(users, func(u *SimpleUser, _ int) bool {
+		return u != nil
+	})
+	users = lo.Map(users, func(u *SimpleUser, _ int) *SimpleUser {
+		return u.clone()
+	})
+	lo.ForEach(users, func(u *SimpleUser, _ int) {
+		if u.ID != "" {
+			if u.Username == "" {
+				u.Username = u.ID
+			}
+		} else {
+			if u.Username != "" {
+				u.ID = u.Username
+			}
 		}
-		if u.ID == "" && u.Username == "" {
-			continue
-		}
-		u1 := u.clone()
-		if u1.ID == "" {
-			u1.ID = u1.Username
-		}
-		if u1.Username == "" {
-			u1.Username = u1.ID
-		}
-		m[u1.Username] = u1
-	}
-	loadPrincipal := func(_ context.Context, pid PrincipalId) (*Principal, error) {
-		u, ok := m[pid.ID]
-		if !ok {
-			return nil, ErrPrincipalNotFound
-		}
-		p := &Principal{
+	})
+
+	userToPrincipal := func(u *SimpleUser) *Principal {
+		return &Principal{
 			ID:          u.ID,
 			Authorities: slices.Clone(u.Authorities),
 			Password:    u.Password,
@@ -51,11 +50,34 @@ func SimpleUsers(users []*SimpleUser) Loader {
 			Phone:       u.Phone,
 			AvatarUrl:   u.AvatarUrl,
 			Nickname:    u.Nickname,
-			Disabled:    false,
+			Disabled:    u.Disabled,
 			Expiry:      u.Expiry,
 			Locked:      u.Locked,
 		}
-		return p, nil
+	}
+
+	loadPrincipal := func(_ context.Context, pid PrincipalId) (*Principal, error) {
+		for _, u := range users {
+			switch pid.Type {
+			case PrincipalUid:
+				if u.ID != "" && u.ID == pid.ID {
+					return userToPrincipal(u), nil
+				}
+			case PrincipalUsername:
+				if u.Username != "" && u.Username == pid.ID {
+					return userToPrincipal(u), nil
+				}
+			case PrincipalEmail:
+				if u.Email != "" && u.Email == pid.ID {
+					return userToPrincipal(u), nil
+				}
+			case PrincipalPhone:
+				if u.Phone != "" && u.Phone == pid.ID {
+					return userToPrincipal(u), nil
+				}
+			}
+		}
+		return nil, ErrPrincipalNotFound
 	}
 	return LoaderFunc(loadPrincipal)
 }
