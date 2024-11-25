@@ -5,6 +5,7 @@ import (
 	"unicode"
 )
 
+// TrimMargin 去掉字符串的每行左侧空白和marginPrefix前缀
 func TrimMargin(s string, marginPrefix string) string {
 	lines := strings.Split(s, "\n")
 	for i := 0; i < len(lines); i++ {

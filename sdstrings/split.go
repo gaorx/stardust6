@@ -4,6 +4,8 @@ import (
 	"strings"
 )
 
+// SplitNonempty 将字符串按照指定的分隔符分割
+// 如果trimSpace为true，则去掉每个分割后的字符串两边的空白字符，如果分割后的字符串为空，则不加入结果
 func SplitNonempty(s, sep string, trimSpace bool) []string {
 	r0 := strings.Split(s, sep)
 	r1 := make([]string, 0, len(r0))
@@ -18,6 +20,7 @@ func SplitNonempty(s, sep string, trimSpace bool) []string {
 	return r1
 }
 
+// Split2s 将字符串按照指定的分隔符分割为两部分
 func Split2s(s, sep string) (string, string) {
 	if s == "" {
 		return "", ""
@@ -33,6 +36,7 @@ func Split2s(s, sep string) (string, string) {
 	}
 }
 
+// Split3s 将字符串按照指定的分隔符分割为三部分
 func Split3s(s, sep string) (string, string, string) {
 	if s == "" {
 		return "", "", ""
@@ -50,6 +54,7 @@ func Split3s(s, sep string) (string, string, string) {
 	}
 }
 
+// Split4s 将字符串按照指定的分隔符分割为四部分
 func Split4s(s, sep string) (string, string, string, string) {
 	if s == "" {
 		return "", "", "", ""
