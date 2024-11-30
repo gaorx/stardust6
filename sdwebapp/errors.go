@@ -15,16 +15,19 @@ func NewHttpErrorFrom(err error, retainMessage bool) *echo.HTTPError {
 		if retainMessage {
 			return echo.NewHTTPError(code, internal.Error(), internal)
 		} else {
-			return echo.NewHTTPError(code, http.StatusText(code), internal)
+			return echo.NewHTTPError(code, httpStatusToText(code), internal)
 		}
 	}
 	if he, ok := sderr.As[*echo.HTTPError](err); ok {
 		he1 := *he
+		if !retainMessage {
+			he1.Message = httpStatusToText(he1.Code)
+		}
 		return &he1
 	} else if sderr.Is(err, sdauthn.ErrPrincipalNotFound) {
 		return newHttpErr(http.StatusUnauthorized, err)
 	} else if sderr.Is(err, sdauthn.ErrCredentialInvalid) {
-		return newHttpErr(http.StatusBadRequest, err)
+		return newHttpErr(http.StatusUnauthorized, err)
 	} else if sderr.Is(err, sdauthn.ErrPrincipalDisabled) {
 		return newHttpErr(http.StatusUnauthorized, err)
 	} else if sderr.Is(err, sdauthn.ErrPrincipalExpired) {
@@ -44,4 +47,12 @@ func defaultRouteErrorHandler(err error, c echo.Context) {
 		panic("invalid error")
 	}
 	_ = c.String(he.Code, sderr.Ensure(he.Message).Error())
+}
+
+func httpStatusToText(statusCode int) string {
+	msg := http.StatusText(statusCode)
+	if msg == "" {
+		msg = "Unknown status code"
+	}
+	return msg
 }

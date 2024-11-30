@@ -79,7 +79,7 @@ func (a *authenticator) AccessAuthenticated(c echo.Context) error {
 		return sderr.Wrap(err)
 	}
 	if p == nil {
-		return sderr.Newf("no principal")
+		return sderr.Wrap(sdauthn.ErrPrincipalNotFound)
 	}
 	req := Get[loadable[sdauthn.Request]](c, akSecurityAccessRequest).v
 	authenticated, err := a.authenticate(c, req, sdauthn.LoaderOf(p))

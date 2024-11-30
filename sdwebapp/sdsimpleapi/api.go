@@ -48,16 +48,18 @@ func (a *API) AddMiddlewares(middlewares ...echo.MiddlewareFunc) *API {
 }
 
 func (a *API) ToRoutes(*sdwebapp.App) sdwebapp.Routes {
-	return sdwebapp.Routes{{
-		Name:              a.Name,
-		Method:            http.MethodPost,
-		Path:              a.Path,
-		Handler:           a.Handler,
-		Middlewares:       append(a.Middlewares, Middleware),
-		Guard:             a.Guard,
-		GuardErrorHandler: a.GuardErrorHandler,
-		Doc:               a.Doc,
-	}}
+	return sdwebapp.Routes{
+		&sdwebapp.Route{
+			Name:              a.Name,
+			Method:            http.MethodPost,
+			Path:              a.Path,
+			Handler:           a.Handler,
+			Middlewares:       append(a.Middlewares, Middleware),
+			Guard:             a.Guard,
+			GuardErrorHandler: a.GuardErrorHandler,
+			Doc:               a.Doc,
+		},
+	}
 }
 
 func (a *API) Apply(app *sdwebapp.App) error {

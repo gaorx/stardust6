@@ -32,3 +32,4 @@ go test $PKG/sdstrings
 go test $PKG/sdlocal
 go test $PKG/sdsnowflake
 go test $PKG/sdsecurity/sdauthn
+go test $PKG/sdwebapp

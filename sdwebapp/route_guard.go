@@ -48,13 +48,13 @@ func Authorized(f func(c echo.Context, p *sdauthn.Principal) bool) RouteGuard {
 	}
 }
 
-func AuthorizedAuthorities(authorities ...string) RouteGuard {
+func HasAuthority(authorities ...string) RouteGuard {
 	return Authorized(func(_ echo.Context, p *sdauthn.Principal) bool {
 		return p.HasAnyAuthority(authorities...)
 	})
 }
 
-func AuthorizedExpr(expression string) RouteGuard {
+func IsMatched(expression string) RouteGuard {
 	type envVars struct {
 		ID          string
 		Username    string

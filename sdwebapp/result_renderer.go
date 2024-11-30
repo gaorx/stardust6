@@ -17,7 +17,7 @@ func renderResultDefault(c echo.Context, r *Result) error {
 	if r == nil {
 		return nil
 	}
-	r1 := r.Normalize()
+	r1 := r.Normalize(c)
 	if r1.Err != nil {
 		return c.String(r1.StatusCode, r1.Err.Error())
 	}
@@ -60,7 +60,7 @@ func AsText(c echo.Context, r *Result) error {
 	if r == nil {
 		return nil
 	}
-	r1 := r.Normalize()
+	r1 := r.Normalize(c)
 	if r1.Err != nil {
 		return c.String(r1.StatusCode, r1.Err.Error())
 	}
@@ -81,7 +81,7 @@ func AsJson(c echo.Context, r *Result) error {
 	if r == nil {
 		return nil
 	}
-	r1 := r.Normalize()
+	r1 := r.Normalize(c)
 	if r1.Err != nil {
 		return c.String(r1.StatusCode, r1.Err.Error())
 	}
@@ -92,7 +92,7 @@ func AsPrettyJson(c echo.Context, r *Result) error {
 	if r == nil {
 		return nil
 	}
-	r1 := r.Normalize()
+	r1 := r.Normalize(c)
 	if r1.Err != nil {
 		return c.String(r1.StatusCode, r1.Err.Error())
 	}

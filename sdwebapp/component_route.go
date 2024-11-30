@@ -6,7 +6,7 @@ import (
 
 var (
 	_ Component = (*Route)(nil)
-	_ Component = (Routables)(nil)
+	_ Component = (Routes)(nil)
 )
 
 func (r *Route) Apply(app *App) error {
@@ -28,16 +28,6 @@ func (r *Route) Apply(app *App) error {
 }
 
 func (rs Routes) Apply(app *App) error {
-	for _, route := range rs {
-		err := route.Apply(app)
-		if err != nil {
-			return sderr.Wrap(err)
-		}
-	}
-	return nil
-}
-
-func (rs Routables) Apply(app *App) error {
 	for _, routable := range rs {
 		if routable == nil {
 			continue
@@ -47,6 +37,16 @@ func (rs Routables) Apply(app *App) error {
 			if err != nil {
 				return sderr.Wrap(err)
 			}
+		}
+	}
+	return nil
+}
+
+func applyRoutes(app *App, routes []*Route) error {
+	for _, route := range routes {
+		err := route.Apply(app)
+		if err != nil {
+			return sderr.Wrap(err)
 		}
 	}
 	return nil

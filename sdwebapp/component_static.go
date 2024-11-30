@@ -101,7 +101,7 @@ func (c *StaticContent) AddMiddleware(middlewares ...MiddlewareFunc) *StaticCont
 	return c
 }
 
-func (c StaticContent) ToRoutes(*App) Routes {
+func (c StaticContent) ToRoutes(*App) []*Route {
 	c1 := c
 	if c1.Method == "" {
 		c1.Method = http.MethodGet
@@ -133,7 +133,7 @@ func (c StaticContent) ToRoutes(*App) Routes {
 }
 
 func (c StaticContent) Apply(app *App) error {
-	return c.ToRoutes(app).Apply(app)
+	return applyRoutes(app, c.ToRoutes(app))
 }
 
 func File(path string, filename string, middlewares ...MiddlewareFunc) *StaticFile {
@@ -159,7 +159,7 @@ func (f *StaticFile) AddMiddleware(middlewares ...MiddlewareFunc) *StaticFile {
 	return f
 }
 
-func (f StaticFile) ToRoutes(*App) Routes {
+func (f StaticFile) ToRoutes(*App) []*Route {
 	guard := f.Guard
 	if guard == nil {
 		guard = PermitAll()
@@ -186,7 +186,7 @@ func (f StaticFile) ToRoutes(*App) Routes {
 }
 
 func (f StaticFile) Apply(app *App) error {
-	return f.ToRoutes(app).Apply(app)
+	return applyRoutes(app, f.ToRoutes(app))
 }
 
 func Dir(prefix, dirname string, middlewares ...MiddlewareFunc) *StaticDirectory {
@@ -239,7 +239,7 @@ func (d *StaticDirectory) SetFallbackToRootIndexPage() *StaticDirectory {
 	return d
 }
 
-func (d StaticDirectory) ToRoutes(app *App) Routes {
+func (d StaticDirectory) ToRoutes(app *App) []*Route {
 	var fsys fs.FS
 	if d.Fsys != nil {
 		fsys = d.Fsys
@@ -269,5 +269,5 @@ func (d StaticDirectory) ToRoutes(app *App) Routes {
 }
 
 func (d StaticDirectory) Apply(app *App) error {
-	return d.ToRoutes(app).Apply(app)
+	return applyRoutes(app, d.ToRoutes(app))
 }

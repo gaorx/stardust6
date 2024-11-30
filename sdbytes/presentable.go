@@ -3,6 +3,11 @@ package sdbytes
 // Presentable 便于战士用的的字节切片，可转换成hex或者base64
 type Presentable []byte
 
+// P 将字节切片转换为Presentable
+func P(d []byte) Presentable {
+	return d
+}
+
 // Summarize 返回字节切片的摘要
 func (p Presentable) String() string {
 	return Summarize(p)

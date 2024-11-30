@@ -74,25 +74,27 @@ func (r *Result) SetContentType(s string) *Result {
 	return r
 }
 
-func (r *Result) Normalize() *Result {
+func (r *Result) Normalize(c echo.Context) *Result {
 	if r == nil {
 		return nil
 	}
 	r1 := *r
 	if !r1.normalized {
-		if r.Err == nil {
-			if r1.StatusCode != 0 {
-				r1.StatusCode = r.StatusCode
-			} else {
+		if r1.Err == nil {
+			if r1.StatusCode == 0 {
 				r1.StatusCode = http.StatusOK
 			}
 		} else {
-			he := NewHttpErrorFrom(r.Err, false)
+			if r1.StatusCode == 0 {
+				r1.StatusCode = http.StatusInternalServerError
+			}
+			he := NewHttpErrorFrom(echo.NewHTTPError(r1.StatusCode, r1.Err.Error()), c.Echo().Debug)
 			if r1.StatusCode == 0 {
 				r1.StatusCode = he.Code
 			}
 			r1.Err = he
 		}
+		r1.normalized = true
 	}
 	return &r1
 }

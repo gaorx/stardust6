@@ -7,7 +7,6 @@ import (
 	"github.com/samber/lo"
 	"net/http"
 	"reflect"
-	"slices"
 )
 
 type Route struct {
@@ -22,16 +21,14 @@ type Route struct {
 }
 
 type Routable interface {
-	ToRoutes(*App) Routes
+	ToRoutes(*App) []*Route
 }
 
-type Routes []*Route
-type Routables []Routable
+type Routes []Routable
 
 var (
 	_ Routable = (*Route)(nil)
 	_ Routable = (Routes)(nil)
-	_ Routable = (Routables)(nil)
 )
 
 func R(method, path string, handler any) *Route {
@@ -62,15 +59,11 @@ func (r *Route) AddMiddlewares(middlewares ...MiddlewareFunc) *Route {
 	return r
 }
 
-func (r *Route) ToRoutes(*App) Routes {
+func (r *Route) ToRoutes(*App) []*Route {
 	return []*Route{r}
 }
 
-func (rs Routes) ToRoutes(*App) Routes {
-	return slices.Clone(rs)
-}
-
-func (rs Routables) ToRoutes(app *App) Routes {
+func (rs Routes) ToRoutes(app *App) []*Route {
 	var routes []*Route
 	for _, routable := range rs {
 		if routable == nil {
@@ -216,13 +209,13 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 				if err := c.Bind(p); err != nil {
 					return reflect.Value{}, sderr.Wrapf(err, "bind input error (structPtr)")
 				}
-				return reflect.ValueOf(p).Elem(), nil
+				return reflect.ValueOf(p), nil
 			})
 		} else if sdreflect.IsMap(t, sdreflect.TString, nil) {
 			numOfBinding += 1
 			inputMarkers = append(inputMarkers, func(c echo.Context) (reflect.Value, error) {
 				m := reflect.MakeMap(t).Interface()
-				if err := c.Bind(m); err != nil {
+				if err := c.Bind(&m); err != nil {
 					return reflect.Value{}, sderr.Wrapf(err, "bind input error (map)")
 				}
 				return reflect.ValueOf(m), nil
@@ -276,7 +269,7 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 		case 21:
 			err0 := outs[0].Interface()
 			return sderr.Ensure(err0)
-		case 22:
+		case 23:
 			res0 := outs[0].Interface().(*Result)
 			if res0 == nil {
 				return nil

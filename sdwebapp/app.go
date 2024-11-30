@@ -4,6 +4,7 @@ import (
 	"github.com/gaorx/stardust6/sderr"
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
+	"io/fs"
 )
 
 type App struct {
@@ -11,12 +12,42 @@ type App struct {
 }
 
 type Options struct {
-	DebugMode     bool
+	Debug         bool
 	DisplayBanner bool
+	DisplayPort   bool
+	Binder        echo.Binder
+	Renderer      echo.Renderer
+	Fsys          fs.FS
+	IPExtractor   echo.IPExtractor
+	ErrorHandler  echo.HTTPErrorHandler
+	SlogOptions   *SlogOptions
 }
 
-func New() *App {
-	return NewFrom(echo.New())
+func New(opts *Options) *App {
+	opts1 := lo.FromPtr(opts)
+	app := NewFrom(echo.New())
+	app.Debug = opts1.Debug
+	app.HideBanner = !opts1.DisplayBanner
+	app.HidePort = !opts1.DisplayPort
+	if opts1.Binder != nil {
+		app.Binder = opts1.Binder
+	}
+	if opts1.Renderer != nil {
+		app.Renderer = opts1.Renderer
+	}
+	if opts1.Fsys != nil {
+		app.Filesystem = opts1.Fsys
+	}
+	if opts1.IPExtractor != nil {
+		app.IPExtractor = opts1.IPExtractor
+	}
+	if opts1.ErrorHandler != nil {
+		app.HTTPErrorHandler = opts1.ErrorHandler
+	} else {
+		app.HTTPErrorHandler = DefaultHttpErrorHandler
+	}
+	app.Use(SlogRecover(opts1.SlogOptions))
+	return app
 }
 
 func NewFrom(e *echo.Echo) *App {

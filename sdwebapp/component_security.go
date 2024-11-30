@@ -31,6 +31,9 @@ func (security Security) Apply(app *App) error {
 	})
 
 	// 设置签名校验
-	app.Pre(security.SignatureVerifiers.ToMiddleware())
+	m := security.SignatureVerifiers.ToMiddleware()
+	if m != nil {
+		app.Pre(m)
+	}
 	return nil
 }
