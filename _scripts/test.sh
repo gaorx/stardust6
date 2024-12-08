@@ -42,3 +42,8 @@ go test $PKG/sdcache/internal/doubletest
 go test $PKG/sdsql
 go test $PKG/sdbun/sdbunsqlite
 go test $PKG/sdbun/sdbunmysql
+go test $PKG/sdmath
+go test $PKG/semver
+go test $PKG/sdlo
+go test $PKG/sduuid
+go test $PKG/sdurl
