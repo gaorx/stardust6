@@ -35,9 +35,9 @@ func TestUnmarshal(t *testing.T) {
 	a2, err := UnmarshalStringT[*A](j1)
 	is.NoError(err)
 	is.Equal(A{A: 1, B: "b"}, *a2)
-	a3 := UnmarshalBytesDef[A]([]byte(j2), A{A: 3})
+	a3 := UnmarshalBytesOr[A]([]byte(j2), A{A: 3})
 	is.Equal(A{A: 3}, a3)
-	a4 := UnmarshalStringDef[*A](j2, &A{A: 4})
+	a4 := UnmarshalStringOr[*A](j2, &A{A: 4})
 	is.Equal(A{A: 4}, *a4)
 
 	a5, err := UnmarshalValueBytes([]byte(j1))
@@ -46,8 +46,8 @@ func TestUnmarshal(t *testing.T) {
 	a6, err := UnmarshalValueString(j1)
 	is.NoError(err)
 	is.Equal(Object{"a": 1.0, "b": "b"}, a6.AsObject())
-	a7 := UnmarshalValueBytesDef([]byte(j2), 3)
+	a7 := UnmarshalValueBytesOr([]byte(j2), 3)
 	is.Equal(V(3), a7)
-	a8 := UnmarshalValueStringDef(j2, "xyz")
+	a8 := UnmarshalValueStringOr(j2, "xyz")
 	is.Equal(V("xyz"), a8)
 }

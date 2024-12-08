@@ -3,6 +3,7 @@
 PKG=github.com/gaorx/stardust6
 
 go test $PKG/sderr
+go test $PKG/sderr/sdnotfounderr
 go test $PKG/sdslog
 go test $PKG/sdbytes
 go test $PKG/sdrand
@@ -33,3 +34,11 @@ go test $PKG/sdlocal
 go test $PKG/sdsnowflake
 go test $PKG/sdsecurity/sdauthn
 go test $PKG/sdwebapp
+go test $PKG/sdredis
+go test $PKG/sdcache
+go test $PKG/sdcache/sdcacheredis
+go test $PKG/sdcache/sdcacheristretto
+go test $PKG/sdcache/internal/doubletest
+go test $PKG/sdsql
+go test $PKG/sdbun/sdbunsqlite
+go test $PKG/sdbun/sdbunmysql

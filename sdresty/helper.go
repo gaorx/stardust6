@@ -54,6 +54,6 @@ func anyToStr(v any) string {
 		if !j {
 			return fmt.Sprintf("%v", v)
 		}
-		return sdjson.MarshalStringDef(v, "")
+		return sdjson.MarshalStringOr(v, "")
 	}
 }

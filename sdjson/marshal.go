@@ -42,8 +42,8 @@ func MarshalIndentString(v any, prefix, indent string) (string, error) {
 	return string(j), nil
 }
 
-// MarshalStringDef 序列化一个值到JSON格式字符串，失败时返回默认值
-func MarshalStringDef(v any, def string) string {
+// MarshalStringOr 序列化一个值到JSON格式字符串，失败时返回默认值
+func MarshalStringOr(v any, def string) string {
 	j, err := MarshalString(v)
 	if err != nil {
 		return def
@@ -51,8 +51,8 @@ func MarshalStringDef(v any, def string) string {
 	return j
 }
 
-// MarshalIndentStringDef 序列化一个值到JSON格式字符串，带缩进，失败时返回默认值
-func MarshalIndentStringDef(v any, prefix, indent, def string) string {
+// MarshalIndentStringOr 序列化一个值到JSON格式字符串，带缩进，失败时返回默认值
+func MarshalIndentStringOr(v any, prefix, indent, def string) string {
 	j, err := MarshalIndentString(v, prefix, indent)
 	if err != nil {
 		return def
@@ -62,7 +62,7 @@ func MarshalIndentStringDef(v any, prefix, indent, def string) string {
 
 // MarshalPretty 序列化一个值到JSON格式字符串，带有默认的缩进，失败时返回默认值
 func MarshalPretty(v any) string {
-	return MarshalIndentStringDef(v, "", "  ", "")
+	return MarshalIndentStringOr(v, "", "  ", "")
 }
 
 // UnmarshalBytesT 将字节数组反序列化为指定类型
@@ -80,8 +80,8 @@ func UnmarshalStringT[T any](j string) (T, error) {
 	return UnmarshalBytesT[T]([]byte(j))
 }
 
-// UnmarshalBytesDef 将字节数组反序列化为指定类型，失败时返回默认值
-func UnmarshalBytesDef[T any](j []byte, def T) T {
+// UnmarshalBytesOr 将字节数组反序列化为指定类型，失败时返回默认值
+func UnmarshalBytesOr[T any](j []byte, def T) T {
 	v, err := UnmarshalBytesT[T](j)
 	if err != nil {
 		return def
@@ -89,9 +89,9 @@ func UnmarshalBytesDef[T any](j []byte, def T) T {
 	return v
 }
 
-// UnmarshalStringDef 反序列化一个JSON格式字符串到指定类型，失败时返回默认值
-func UnmarshalStringDef[T any](j string, def T) T {
-	return UnmarshalBytesDef[T]([]byte(j), def)
+// UnmarshalStringOr 反序列化一个JSON格式字符串到指定类型，失败时返回默认值
+func UnmarshalStringOr[T any](j string, def T) T {
+	return UnmarshalBytesOr[T]([]byte(j), def)
 }
 
 // UnmarshalValueBytes 将字节数组反序列化为Value
@@ -108,8 +108,8 @@ func UnmarshalValueString(s string) (Value, error) {
 	}
 }
 
-// UnmarshalValueBytesDef 将字节数组反序列化为Value，失败时返回默认值
-func UnmarshalValueBytesDef(j []byte, def any) Value {
+// UnmarshalValueBytesOr 将字节数组反序列化为Value，失败时返回默认值
+func UnmarshalValueBytesOr(j []byte, def any) Value {
 	v, err := UnmarshalValueBytes(j)
 	if err != nil {
 		return V(def)
@@ -117,7 +117,7 @@ func UnmarshalValueBytesDef(j []byte, def any) Value {
 	return v
 }
 
-// UnmarshalValueStringDef 反序列化一个JSON格式字符串到Value，失败时返回默认值
-func UnmarshalValueStringDef(s string, def any) Value {
-	return UnmarshalValueBytesDef([]byte(s), def)
+// UnmarshalValueStringOr 反序列化一个JSON格式字符串到Value，失败时返回默认值
+func UnmarshalValueStringOr(s string, def any) Value {
+	return UnmarshalValueBytesOr([]byte(s), def)
 }

@@ -29,7 +29,7 @@ func main() {
 		sdresty.ForJsonValue(),
 		sdresty.QueryParams(map[string]any{"k1": "v1", "k2": 22}),
 	))
-	fmt.Println(sdjson.MarshalStringDef(info, ""))
+	fmt.Println(sdjson.MarshalStringOr(info, ""))
 	fmt.Println(sep)
 
 	// POST
@@ -41,7 +41,7 @@ func main() {
 		sdresty.JsonData(sdjson.Object{"body_k1": "body_v1", "body_k2": 222}),
 		sdresty.QueryParams(map[string]any{"k1": "v1", "k2": 22}),
 	))
-	fmt.Println(sdjson.MarshalStringDef(info, ""))
+	fmt.Println(sdjson.MarshalStringOr(info, ""))
 	fmt.Println(sep)
 
 	// 解析返回后的json
