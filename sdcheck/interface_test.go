@@ -190,4 +190,18 @@ func TestAll(t *testing.T) {
 	is.Error(HasPrefix("cb", "a", "HAS_PREFIX").Check())
 	is.NoError(HasSuffix("ba", "a", "HAS_PREFIX").Check())
 	is.Error(HasSuffix("bc", "a", "HAS_SUFFIX").Check())
+
+	// Validate
+	type testUser struct {
+		Name string `validate:"required"`
+		Age  int    `validate:"min=1,max=10"`
+	}
+	is.Error(ValidateStruct(nil, "VALIDATE").Check())
+	is.Error(ValidateStruct(&testUser{Name: "", Age: 20}, "VALIDATE").Check())
+	is.Error(ValidateStruct(&testUser{Name: "xx", Age: 20}, "VALIDATE").Check())
+	is.NoError(ValidateStruct(&testUser{Name: "xx", Age: 9}, "VALIDATE").Check())
+	is.Error(ValidateStructPartial(&testUser{Name: "", Age: 20}, []string{"Name"}, "VALIDATE").Check())
+	is.NoError(ValidateStructPartial(&testUser{Name: "xx", Age: 20}, []string{"Name"}, "VALIDATE").Check())
+	is.Error(ValidateVar(20, "min=1,max=10", "VALIDATE").Check())
+	is.NoError(ValidateVar(8, "min=1,max=10", "VALIDATE").Check())
 }

@@ -49,3 +49,5 @@ go test $PKG/sduuid
 go test $PKG/sdurl
 go test $PKG/sdbackoff
 go test $PKG/sdchan
+go test $PKG/sdvalidate
+go test $PKG/sdcheck
