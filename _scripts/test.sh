@@ -51,3 +51,4 @@ go test $PKG/sdbackoff
 go test $PKG/sdchan
 go test $PKG/sdvalidate
 go test $PKG/sdcheck
+go test $PKG/sdsync
