@@ -47,3 +47,4 @@ go test $PKG/semver
 go test $PKG/sdlo
 go test $PKG/sduuid
 go test $PKG/sdurl
+go test $PKG/sdbackoff
