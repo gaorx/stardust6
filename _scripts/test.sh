@@ -55,3 +55,5 @@ go test $PKG/sdsync
 go test $PKG/sdcrypto
 go test $PKG/sdamqp
 go test $PKG/sdcsv
+go test $PKG/sdhttpua
+go test $PKG/sdexec

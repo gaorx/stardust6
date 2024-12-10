@@ -48,6 +48,7 @@ require (
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-shellwords v1.0.12 // indirect
 	github.com/mattn/go-sqlite3 v1.14.24 // indirect
 	github.com/mssola/useragent v1.0.0 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
