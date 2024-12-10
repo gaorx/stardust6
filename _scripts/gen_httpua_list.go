@@ -32,7 +32,7 @@ func main() {
 	t := `
 package sdhttpua
 var (
-	rawUserAgents = []string{
+	allRaw = []string{
 %s
 	}
 )
