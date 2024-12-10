@@ -43,7 +43,7 @@ go test $PKG/sdsql
 go test $PKG/sdbun/sdbunsqlite
 go test $PKG/sdbun/sdbunmysql
 go test $PKG/sdmath
-go test $PKG/semver
+go test $PKG/sdsemver
 go test $PKG/sdlo
 go test $PKG/sduuid
 go test $PKG/sdurl
@@ -57,3 +57,4 @@ go test $PKG/sdamqp
 go test $PKG/sdcsv
 go test $PKG/sdhttpua
 go test $PKG/sdexec
+go test $PKG/sdmqtt

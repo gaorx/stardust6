@@ -2,3 +2,4 @@
 * sdslog: 写单元测试
 * sdcodegen/sdgogen: 补充动能，注释，单元测试和例子
 * sdwebapp: 写context部分单元测试
+* sdmqtt: 补充测试
