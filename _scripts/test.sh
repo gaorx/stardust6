@@ -54,3 +54,4 @@ go test $PKG/sdcheck
 go test $PKG/sdsync
 go test $PKG/sdcrypto
 go test $PKG/sdamqp
+go test $PKG/sdcsv
