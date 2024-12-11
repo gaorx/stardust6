@@ -60,3 +60,4 @@ go test $PKG/sdexec
 go test $PKG/sdmqtt
 go test $PKG/sdsms
 go test $PKG/sdsms/sdsmsaliyun
+go test $PKG/sdobjectstore
