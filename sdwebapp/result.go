@@ -81,18 +81,20 @@ func (r *Result) Normalize(c echo.Context) *Result {
 	r1 := *r
 	if !r1.normalized {
 		if r1.Err == nil {
-			if r1.StatusCode == 0 {
+			if r1.StatusCode <= 0 {
 				r1.StatusCode = http.StatusOK
 			}
 		} else {
-			if r1.StatusCode == 0 {
-				r1.StatusCode = http.StatusInternalServerError
-			}
-			he := NewHttpErrorFrom(echo.NewHTTPError(r1.StatusCode, r1.Err.Error()), c.Echo().Debug)
-			if r1.StatusCode == 0 {
-				r1.StatusCode = he.Code
+			var he *echo.HTTPError
+			if he0, ok := sderr.As[*echo.HTTPError](r1.Err); ok {
+				he = he0
+			} else {
+				he = NewHttpErrorFrom(r1.Err, "")
 			}
 			r1.Err = he
+			if r1.StatusCode <= 0 {
+				r1.StatusCode = he.Code
+			}
 		}
 		r1.normalized = true
 	}

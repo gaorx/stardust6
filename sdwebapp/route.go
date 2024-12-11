@@ -154,7 +154,7 @@ func (r *Route) makeHandler(h any) (echo.HandlerFunc, error) {
 			return nil, sderr.Newf("handler must be a function")
 		}
 
-		inMaker, outputProc, err := r.deconstruct(hv)
+		inMaker, outputProc, boundIndex, err := r.deconstruct(hv)
 		if err != nil {
 			return nil, sderr.Newf("handler must be a function")
 		}
@@ -167,22 +167,33 @@ func (r *Route) makeHandler(h any) (echo.HandlerFunc, error) {
 				}
 				ins = append(ins, v)
 			}
+			if boundIndex >= 0 {
+				bound := ins[boundIndex].Interface()
+				validErr := validateBound(c, bound)
+				if validErr != nil {
+					r0 := Err(NewHttpErrorFrom(echo.ErrBadRequest, "validation failed"))
+					return outputProc(c, []reflect.Value{reflect.ValueOf(r0)})
+				}
+			}
 			outs := hv.Call(ins)
 			return outputProc(c, outs)
 		}, nil
 	}
 }
 
-type handlerInputMaker func(echo.Context) (reflect.Value, error)
-type handlerOutputProcessor func(echo.Context, []reflect.Value) error
+type (
+	handlerInputMaker      func(echo.Context) (reflect.Value, error)
+	handlerOutputProcessor func(echo.Context, []reflect.Value) error
+)
 
-func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutputProcessor, error) {
+func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutputProcessor, int, error) {
 	ht := hv.Type()
 
 	// input
 	var inputMarkers []handlerInputMaker
+	boundIndex := -1
 	numOfContext, numOfBinding := 0, 0
-	for _, t := range sdreflect.Ins(ht) {
+	for i, t := range sdreflect.Ins(ht) {
 		if t == sdreflect.T[echo.Context]() {
 			numOfContext += 1
 			inputMarkers = append(inputMarkers, func(c echo.Context) (reflect.Value, error) {
@@ -202,6 +213,7 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 				}
 				return reflect.ValueOf(p).Elem(), nil
 			})
+			boundIndex = i
 		} else if sdreflect.IsStructPtr(t) {
 			numOfBinding += 1
 			inputMarkers = append(inputMarkers, func(c echo.Context) (reflect.Value, error) {
@@ -211,6 +223,7 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 				}
 				return reflect.ValueOf(p), nil
 			})
+			boundIndex = i
 		} else if sdreflect.IsMap(t, sdreflect.TString, nil) {
 			numOfBinding += 1
 			inputMarkers = append(inputMarkers, func(c echo.Context) (reflect.Value, error) {
@@ -220,15 +233,16 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 				}
 				return reflect.ValueOf(m), nil
 			})
+			boundIndex = i
 		} else {
-			return nil, nil, sderr.Newf("illegal handler input type")
+			return nil, nil, -1, sderr.Newf("illegal handler input type")
 		}
 	}
 	if numOfContext > 1 {
-		return nil, nil, sderr.Newf("too many context input")
+		return nil, nil, -1, sderr.Newf("too many context input")
 	}
 	if numOfBinding > 1 {
-		return nil, nil, sderr.Newf("too many binding input")
+		return nil, nil, -1, sderr.Newf("too many binding input")
 	}
 
 	// output
@@ -250,7 +264,7 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 	} else if len(outTypes) == 2 {
 		t0, t1 := outTypes[0], outTypes[1]
 		if t1 != sdreflect.TErr {
-			return nil, nil, sderr.Newf("illegal handler output type")
+			return nil, nil, -1, sderr.Newf("illegal handler output type")
 		}
 		if t0 == sdreflect.T[*Result]() {
 			form = 33
@@ -260,7 +274,7 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 			form = 35
 		}
 	} else {
-		return nil, nil, sderr.Newf("illegal handler output type")
+		return nil, nil, -1, sderr.Newf("illegal handler output type")
 	}
 	outputProcessor := func(c echo.Context, outs []reflect.Value) error {
 		switch form {
@@ -309,5 +323,5 @@ func (r *Route) deconstruct(hv reflect.Value) ([]handlerInputMaker, handlerOutpu
 		}
 	}
 
-	return inputMarkers, outputProcessor, nil
+	return inputMarkers, outputProcessor, boundIndex, nil
 }

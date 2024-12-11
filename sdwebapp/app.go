@@ -18,6 +18,7 @@ type Options struct {
 	Binder        echo.Binder
 	Renderer      echo.Renderer
 	Fsys          fs.FS
+	Validator     echo.Validator
 	IPExtractor   echo.IPExtractor
 	ErrorHandler  echo.HTTPErrorHandler
 	SlogOptions   *SlogOptions
@@ -29,6 +30,11 @@ func New(opts *Options) *App {
 	app.Debug = opts1.Debug
 	app.HideBanner = !opts1.DisplayBanner
 	app.HidePort = !opts1.DisplayPort
+	if opts1.Validator != nil {
+		app.Validator = opts1.Validator
+	} else {
+		app.Validator = ValidatorFunc(defaultValidate)
+	}
 	if opts1.Binder != nil {
 		app.Binder = opts1.Binder
 	}

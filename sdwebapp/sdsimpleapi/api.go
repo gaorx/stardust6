@@ -81,7 +81,12 @@ func renderResult(c echo.Context, r *sdwebapp.Result) error {
 	case ResultInterface:
 		r1.assignFrom(e0)
 	default:
-		r1.Code, r1.Message = CodeUnknown, sderr.PublicMsg(r.Err)
+		if he, ok := sderr.As[*echo.HTTPError](r.Err); ok {
+			r1.Code = httpStatusCodeToResultCode(he.Code)
+			r1.Message = httpErrorMessageToResultMessage(he.Code, he.Message)
+		} else {
+			r1.Code, r1.Message = CodeUnknown, sderr.PublicMsg(r.Err)
+		}
 	}
 	r1.trimMeta()
 	return c.JSON(http.StatusOK, &r1)

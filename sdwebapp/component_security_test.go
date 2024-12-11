@@ -22,7 +22,7 @@ func TestSecurity(t *testing.T) {
 		authnReq := sdauthn.NewUsernameAndPassword(req.Username, req.Password)
 		principal, err := c.Authenticator().Grant(authnReq)
 		if err != nil {
-			he := NewHttpErrorFrom(err, true)
+			he := NewHttpErrorFrom(err, "")
 			return OK(sdjson.Object{
 				"code":    he.Code,
 				"message": he.Message,

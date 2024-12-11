@@ -7,21 +7,25 @@ import (
 	"net/http"
 )
 
-func NewHttpErrorFrom(err error, retainMessage bool) *echo.HTTPError {
+func NewHttpErrorFrom(err error, message string) *echo.HTTPError {
 	if err == nil {
 		return nil
 	}
 	newHttpErr := func(code int, internal error) *echo.HTTPError {
-		if retainMessage {
-			return echo.NewHTTPError(code, internal.Error(), internal)
+		if message != "" {
+			return echo.NewHTTPError(code, message, internal)
 		} else {
-			return echo.NewHTTPError(code, httpStatusToText(code), internal)
+			return echo.NewHTTPError(code, httpStatusToText(code))
 		}
 	}
 	if he, ok := sderr.As[*echo.HTTPError](err); ok {
 		he1 := *he
-		if !retainMessage {
-			he1.Message = httpStatusToText(he1.Code)
+		if message != "" {
+			he1.Message = message
+		} else {
+			if he1.Message == nil || he1.Message == "" {
+				he1.Message = httpStatusToText(he1.Code)
+			}
 		}
 		return &he1
 	} else if sderr.Is(err, sdauthn.ErrPrincipalNotFound) {
@@ -42,7 +46,7 @@ func NewHttpErrorFrom(err error, retainMessage bool) *echo.HTTPError {
 }
 
 func defaultRouteErrorHandler(err error, c echo.Context) {
-	he := NewHttpErrorFrom(err, c.Echo().Debug)
+	he := NewHttpErrorFrom(err, "")
 	if he == nil {
 		panic("invalid error")
 	}

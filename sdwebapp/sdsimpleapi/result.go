@@ -7,7 +7,7 @@ import (
 
 const (
 	CodeOK      = "OK"
-	CodeUnknown = "unknown"
+	CodeUnknown = "UNKNOWN"
 )
 
 type ResultInterface interface {
