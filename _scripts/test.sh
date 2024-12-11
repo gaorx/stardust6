@@ -58,3 +58,5 @@ go test $PKG/sdcsv
 go test $PKG/sdhttpua
 go test $PKG/sdexec
 go test $PKG/sdmqtt
+go test $PKG/sdsms
+go test $PKG/sdsms/sdsmsaliyun
