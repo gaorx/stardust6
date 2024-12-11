@@ -11,11 +11,13 @@ import (
 	"github.com/samber/lo"
 )
 
+// Client 阿里云短信发送
 type Client struct {
 	client *dysmsapi.Client
 	config *Config
 }
 
+// Config 配置
 type Config struct {
 	Endpoint        string `json:"endpoint" toml:"endpoint" yaml:"endpoint"`
 	AccessId        string `json:"access_id" toml:"access_id" yaml:"access_id"`
@@ -25,6 +27,7 @@ type Config struct {
 
 var _ sdsms.Interface = &Client{}
 
+// New 创建阿里云短信客户端
 func New(config *Config) (*Client, error) {
 	var config1 = lo.FromPtr(config)
 	if config1.Endpoint == "" {
@@ -51,10 +54,12 @@ func New(config *Config) (*Client, error) {
 	return &Client{client: client, config: &config1}, nil
 }
 
+// Config 获取配置
 func (c *Client) Config() *Config {
 	return c.config
 }
 
+// Send 发送短信
 func (c *Client) Send(ctx context.Context, req *sdsms.SendRequest) error {
 	req1 := lo.FromPtr(req)
 	switch len(req1.Messages) {
@@ -83,6 +88,7 @@ func (c *Client) Send(ctx context.Context, req *sdsms.SendRequest) error {
 	default:
 		var msgs1 sdsms.Messages
 		for _, msg := range req1.Messages {
+
 			msg1 := msg
 			if msg1.Phone == "" {
 				return sderr.Newf("no phone number")
