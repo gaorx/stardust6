@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+// API 描述一个API，它是一个Routable，也是一个Component
 type API struct {
 	Name              string
 	Path              string
@@ -18,52 +19,60 @@ type API struct {
 	sdwebapp.Doc
 }
 
+var _ sdwebapp.Routable = (*API)(nil)
+
+// R 创建一个API
 func R(path string, handler any, guard sdwebapp.RouteGuard) *API {
 	return &API{Path: path, Handler: handler, Guard: guard}
 }
 
+// SetName 设置API的名称
 func (a *API) SetName(name string) *API {
 	a.Name = name
 	return a
 }
 
+// SetDoc 设置API的文档
 func (a *API) SetDoc(doc *sdwebapp.Doc) *API {
 	a.Doc = lo.FromPtr(doc)
 	return a
 }
 
+// SetGuard 设置API的Guard
 func (a *API) SetGuard(guard sdwebapp.RouteGuard) *API {
 	a.Guard = guard
 	return a
 }
 
+// SetGuardErrorHandler 设置API的GuardErrorHandler
 func (a *API) SetGuardErrorHandler(handler echo.HTTPErrorHandler) *API {
 	a.GuardErrorHandler = handler
 	return a
 }
 
+// AddMiddlewares 添加API的中间件
 func (a *API) AddMiddlewares(middlewares ...echo.MiddlewareFunc) *API {
 	a.Middlewares = append(a.Middlewares, middlewares...)
 	return a
 }
 
-func (a *API) ToRoutes(*sdwebapp.App) sdwebapp.Routes {
-	return sdwebapp.Routes{
-		&sdwebapp.Route{
-			Name:              a.Name,
-			Method:            http.MethodPost,
-			Path:              a.Path,
-			Handler:           a.Handler,
-			Middlewares:       append(a.Middlewares, Middleware),
-			Guard:             a.Guard,
-			GuardErrorHandler: a.GuardErrorHandler,
-			Doc:               a.Doc,
-		},
-	}
+// ToRoutes 实现Routable接口
+func (a *API) ToRoutes(_ *sdwebapp.App) []*sdwebapp.Route {
+	return []*sdwebapp.Route{{
+		Name:              a.Name,
+		Method:            http.MethodPost,
+		Path:              a.Path,
+		Handler:           a.Handler,
+		Middlewares:       append(a.Middlewares, setRenderResultMiddleware),
+		Guard:             a.Guard,
+		GuardErrorHandler: a.GuardErrorHandler,
+		Doc:               a.Doc,
+	}}
 }
 
+// Apply 实现Component接口
 func (a *API) Apply(app *sdwebapp.App) error {
-	return a.ToRoutes(app).Apply(app)
+	return sdwebapp.ApplyRoutes(app, a.ToRoutes(app))
 }
 
 func renderResult(c echo.Context, r *sdwebapp.Result) error {

@@ -42,7 +42,7 @@ func (rs Routes) Apply(app *App) error {
 	return nil
 }
 
-func applyRoutes(app *App, routes []*Route) error {
+func ApplyRoutes(app *App, routes []*Route) error {
 	for _, route := range routes {
 		err := route.Apply(app)
 		if err != nil {

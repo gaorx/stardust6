@@ -133,7 +133,7 @@ func (c StaticContent) ToRoutes(*App) []*Route {
 }
 
 func (c StaticContent) Apply(app *App) error {
-	return applyRoutes(app, c.ToRoutes(app))
+	return ApplyRoutes(app, c.ToRoutes(app))
 }
 
 func File(path string, filename string, middlewares ...MiddlewareFunc) *StaticFile {
@@ -186,7 +186,7 @@ func (f StaticFile) ToRoutes(*App) []*Route {
 }
 
 func (f StaticFile) Apply(app *App) error {
-	return applyRoutes(app, f.ToRoutes(app))
+	return ApplyRoutes(app, f.ToRoutes(app))
 }
 
 func Dir(prefix, dirname string, middlewares ...MiddlewareFunc) *StaticDirectory {
@@ -269,5 +269,5 @@ func (d StaticDirectory) ToRoutes(app *App) []*Route {
 }
 
 func (d StaticDirectory) Apply(app *App) error {
-	return applyRoutes(app, d.ToRoutes(app))
+	return ApplyRoutes(app, d.ToRoutes(app))
 }

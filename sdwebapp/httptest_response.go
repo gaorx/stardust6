@@ -10,6 +10,12 @@ type TestResponse struct {
 	*httptest.ResponseRecorder
 }
 
+func (res *TestResponse) Let(f func(response *TestResponse)) {
+	if f != nil {
+		f(res)
+	}
+}
+
 func (res *TestResponse) HeaderMap() map[string]string {
 	m := map[string]string{}
 	for k, vals := range res.Header() {
