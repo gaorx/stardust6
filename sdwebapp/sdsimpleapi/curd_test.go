@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gaorx/stardust6/sdbun"
 	"github.com/gaorx/stardust6/sdbun/sdbunsqlite"
+	"github.com/gaorx/stardust6/sdcheck"
 	"github.com/gaorx/stardust6/sdwebapp"
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
@@ -26,8 +27,14 @@ func TestCrud(t *testing.T) {
 	app := sdwebapp.New(nil)
 	app.MustInstall(
 		sdwebapp.Inject(sdwebapp.State(db)),
-		Crud("/api/todo", newTodoRepo, todoQuery, &CrudOptions{
-			Enable:     EnableAll,
+		Crud("/api/todo", newTodoRepo, todoQuery, &CrudOptions[*todoEntity]{
+			Enable: EnableAll,
+			ValidateCreate: func(entity *todoEntity) error {
+				return sdcheck.Required(entity.Description, "no desc").Check()
+			},
+			ValidateUpdate: func(entity *todoEntity) error {
+				return sdcheck.Required(entity.Title, "no title").Check()
+			},
 			GuardRead:  sdwebapp.PermitAll(),
 			GuardWrite: sdwebapp.PermitAll(),
 		}),
@@ -52,6 +59,22 @@ func TestCrud(t *testing.T) {
 		is.NotNil(r.Data)
 		is.Equal("todo1", r.Data.Id)
 		is.Equal("title1", r.Data.Title)
+	})
+	NewTestRequest("/api/todo/create", RequestCreate[*todoEntity]{
+		Data: &todoEntity{
+			Id:          "todo1",
+			Title:       "title1",
+			Description: "",
+			IsComplete:  true,
+			Priority:    3,
+		},
+	}).Call(app).Let(func(resp *sdwebapp.TestResponse) {
+		var r ResultT[*todoEntity]
+		is.Equal(200, resp.Code)
+		is.NotPanics(func() {
+			resp.BodyJson(&r)
+		})
+		is.Equal("BAD_REQUEST", r.Code)
 	})
 
 	// Update
@@ -92,6 +115,23 @@ func TestCrud(t *testing.T) {
 			resp.BodyJson(&r)
 		})
 		is.Equal(CodeNotFound, r.Code)
+	})
+	NewTestRequest("/api/todo/update", RequestUpdate[*todoEntity]{
+		Data: &todoEntity{
+			Id:          "todo1",
+			Title:       "",
+			Description: "desc1_update",
+			IsComplete:  true,
+			Priority:    4,
+		},
+		Columns: []string{"priority"},
+	}).Call(app).Let(func(resp *sdwebapp.TestResponse) {
+		var r ResultT[*todoEntity]
+		is.Equal(200, resp.Code)
+		is.NotPanics(func() {
+			resp.BodyJson(&r)
+		})
+		is.Equal("BAD_REQUEST", r.Code)
 	})
 
 	// Get

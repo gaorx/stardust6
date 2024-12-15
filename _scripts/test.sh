@@ -34,6 +34,7 @@ go test $PKG/sdlocal
 go test $PKG/sdsnowflake
 go test $PKG/sdsecurity/sdauthn
 go test $PKG/sdwebapp
+go test $PKG/sdwebapp/sdsimpleapi
 go test $PKG/sdredis
 go test $PKG/sdcache
 go test $PKG/sdcache/sdcacheredis

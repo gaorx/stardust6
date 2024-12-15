@@ -61,22 +61,3 @@ func loadOk[T any](v T) loadable[T] {
 func loadErr[T any](err error) loadable[T] {
 	return loadable[T]{v: lo.Empty[T](), err: err, loaded: true}
 }
-
-func validateBound(c echo.Context, v any) error {
-	const akValidator = "sdwebapp.validator"
-
-	validator := Get[echo.Validator](c, akValidator)
-	if validator == nil {
-		validator = c.Echo().Validator
-	}
-	if validator == nil {
-		return nil
-	}
-	err := validator.Validate(v)
-	if err != nil {
-		if !sderr.Is(err, echo.ErrValidatorNotRegistered) {
-			return err
-		}
-	}
-	return nil
-}

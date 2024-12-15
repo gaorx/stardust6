@@ -90,7 +90,7 @@ func renderResult(c echo.Context, r *sdwebapp.Result) error {
 	case ResultInterface:
 		r1.assignFrom(e0)
 	default:
-		if he, ok := sderr.As[*echo.HTTPError](r.Err); ok {
+		if he, ok := sderr.As[*echo.HTTPError](r.Err); ok && he != nil {
 			r1.Code = httpStatusCodeToResultCode(he.Code)
 			r1.Message = httpErrorMessageToResultMessage(he.Code, he.Message)
 		} else {

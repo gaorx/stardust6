@@ -169,7 +169,7 @@ func (r *Route) makeHandler(h any) (echo.HandlerFunc, error) {
 			}
 			if boundIndex >= 0 {
 				bound := ins[boundIndex].Interface()
-				validErr := validateBound(c, bound)
+				validErr := validate(c, bound)
 				if validErr != nil {
 					r0 := Err(NewHttpErrorFrom(echo.ErrBadRequest, "validation failed"))
 					return outputProc(c, []reflect.Value{reflect.ValueOf(r0)})

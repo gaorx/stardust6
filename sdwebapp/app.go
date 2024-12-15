@@ -7,23 +7,27 @@ import (
 	"io/fs"
 )
 
+// App 描述一个Web应用
 type App struct {
 	*echo.Echo
 }
 
+// Options 描述App的选项
 type Options struct {
-	Debug         bool
-	DisplayBanner bool
-	DisplayPort   bool
-	Binder        echo.Binder
-	Renderer      echo.Renderer
-	Fsys          fs.FS
-	Validator     echo.Validator
-	IPExtractor   echo.IPExtractor
-	ErrorHandler  echo.HTTPErrorHandler
-	SlogOptions   *SlogOptions
+	Debug          bool                  // 是否调试模式
+	DisplayBanner  bool                  // 是否显示Banner
+	DisplayPort    bool                  // 是否显示端口
+	Binder         echo.Binder           // 绑定器
+	Renderer       echo.Renderer         // 渲染器
+	Fsys           fs.FS                 // 文件系统
+	Validator      echo.Validator        // 验证器
+	IPExtractor    echo.IPExtractor      // IP提取器
+	ErrorHandler   echo.HTTPErrorHandler // 错误处理器
+	SlogOptions    *SlogOptions          // slog选项
+	EnableValidate bool                  // 是否启用验证
 }
 
+// New 创建一个App
 func New(opts *Options) *App {
 	opts1 := lo.FromPtr(opts)
 	app := NewFrom(echo.New())
@@ -52,7 +56,15 @@ func New(opts *Options) *App {
 	} else {
 		app.HTTPErrorHandler = DefaultHttpErrorHandler
 	}
-	app.Use(SlogRecover(opts1.SlogOptions))
+	app.Pre(
+		SlogRecover(opts1.SlogOptions),
+		func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				c.Set(akValidationEnabled, opts1.EnableValidate)
+				return next(c)
+			}
+		},
+	)
 	return app
 }
 

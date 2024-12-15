@@ -8,6 +8,7 @@ import (
 	"github.com/gaorx/stardust6/sdwebapp"
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
+	"net/http"
 )
 
 // RequestCreate 创建实体的请求
@@ -50,23 +51,25 @@ func NullQuery[F any, Q any](_ F) Q {
 }
 
 // CrudOptions CRUD选项
-type CrudOptions struct {
-	Enable      int // 使用EnableXXX常量组合
-	GuardRead   sdwebapp.RouteGuard
-	GuardWrite  sdwebapp.RouteGuard
-	GuardCreate sdwebapp.RouteGuard
-	GuardUpdate sdwebapp.RouteGuard
-	GuardDelete sdwebapp.RouteGuard
-	GuardGet    sdwebapp.RouteGuard
-	GuardList   sdwebapp.RouteGuard
-	GuardFind   sdwebapp.RouteGuard
-	DocCreate   *sdwebapp.Doc
-	DocUpdate   *sdwebapp.Doc
-	DocDelete   *sdwebapp.Doc
-	DocGet      *sdwebapp.Doc
-	DocList     *sdwebapp.Doc
-	DocFind     *sdwebapp.Doc
-	Middlewares []echo.MiddlewareFunc
+type CrudOptions[T any] struct {
+	Enable         int // 使用EnableXXX常量组合
+	ValidateCreate func(T) error
+	ValidateUpdate func(T) error
+	GuardRead      sdwebapp.RouteGuard
+	GuardWrite     sdwebapp.RouteGuard
+	GuardCreate    sdwebapp.RouteGuard
+	GuardUpdate    sdwebapp.RouteGuard
+	GuardDelete    sdwebapp.RouteGuard
+	GuardGet       sdwebapp.RouteGuard
+	GuardList      sdwebapp.RouteGuard
+	GuardFind      sdwebapp.RouteGuard
+	DocCreate      *sdwebapp.Doc
+	DocUpdate      *sdwebapp.Doc
+	DocDelete      *sdwebapp.Doc
+	DocGet         *sdwebapp.Doc
+	DocList        *sdwebapp.Doc
+	DocFind        *sdwebapp.Doc
+	Middlewares    []echo.MiddlewareFunc
 }
 
 const (
@@ -86,7 +89,7 @@ func Crud[TRepo sdsql.Repository[T, ID, Q], T any, ID sdsql.EntityId, Q any, F a
 	path string,
 	factory func(context2 echo.Context) TRepo,
 	filter func(F) Q,
-	opts *CrudOptions,
+	opts *CrudOptions[T],
 ) sdwebapp.Routes {
 	opts1 := lo.FromPtr(opts)
 	var apis []*API
@@ -94,6 +97,7 @@ func Crud[TRepo sdsql.Repository[T, ID, Q], T any, ID sdsql.EntityId, Q any, F a
 		api := Create(
 			getPath(path, "create"),
 			factory,
+			opts1.ValidateCreate,
 			selectGuard(opts1.GuardCreate, opts1.GuardWrite, sdwebapp.RejectAll()),
 		).SetDoc(opts1.DocCreate).AddMiddlewares(opts1.Middlewares...)
 		apis = append(apis, api)
@@ -102,6 +106,7 @@ func Crud[TRepo sdsql.Repository[T, ID, Q], T any, ID sdsql.EntityId, Q any, F a
 		api := Update(
 			getPath(path, "update"),
 			factory,
+			opts1.ValidateUpdate,
 			selectGuard(opts1.GuardUpdate, opts1.GuardWrite, sdwebapp.RejectAll()),
 		).SetDoc(opts1.DocUpdate).AddMiddlewares(opts1.Middlewares...)
 		apis = append(apis, api)
@@ -149,9 +154,15 @@ func Crud[TRepo sdsql.Repository[T, ID, Q], T any, ID sdsql.EntityId, Q any, F a
 func Create[TRepo sdsql.Repository[T, ID, Q], T any, ID sdsql.EntityId, Q any](
 	path string,
 	factory func(echo.Context) TRepo,
+	validator func(T) error,
 	guard sdwebapp.RouteGuard,
 ) *API {
 	h := func(ctx echo.Context, req RequestCreate[T]) *Result {
+		if validator != nil {
+			if err := validator(req.Data); err != nil {
+				return Err(makeBadRequestErr("validation failed"))
+			}
+		}
 		repo := factory(ctx)
 		created, err := repo.CreateAndGet(context.Background(), req.Data)
 		if err != nil {
@@ -166,9 +177,15 @@ func Create[TRepo sdsql.Repository[T, ID, Q], T any, ID sdsql.EntityId, Q any](
 func Update[TRepo sdsql.Repository[T, ID, Q], T any, ID sdsql.EntityId, Q any](
 	path string,
 	factory func(echo.Context) TRepo,
+	validator func(T) error,
 	guard sdwebapp.RouteGuard,
 ) *API {
 	h := func(ctx echo.Context, req RequestUpdate[T]) *Result {
+		if validator != nil {
+			if err := validator(req.Data); err != nil {
+				return Err(makeBadRequestErr("validation failed"))
+			}
+		}
 		repo := factory(ctx)
 		updated, err := repo.UpdateAndGet(context.Background(), req.Data, req.Columns)
 		if err != nil {
@@ -283,4 +300,8 @@ func makeCrudErr(err any) (string, any) {
 	default:
 		return CodeDataError, err1
 	}
+}
+
+func makeBadRequestErr(msg string) (string, any) {
+	return httpStatusCodeToResultCode(http.StatusBadRequest), msg
 }
