@@ -1,6 +1,7 @@
 package sdcodegen
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gaorx/stardust6/sderr"
 	"io"
@@ -147,6 +148,20 @@ func (f *File) StringText() string {
 // IsZero 判断文件是否为空
 func (f *File) IsZero() bool {
 	return f == nil || (f.Name == "" && len(f.Data) <= 0 && f.Mode == 0 && f.ModTime.IsZero() && f.Discarded == false)
+}
+
+// Clone 克隆一个文件
+func (f *File) Clone() *File {
+	if f == nil {
+		return nil
+	}
+	return &File{
+		Name:      f.Name,
+		Data:      bytes.Clone(f.Data),
+		Mode:      f.Mode,
+		ModTime:   f.ModTime,
+		Discarded: f.Discarded,
+	}
 }
 
 // Text 以字符串形式返回文件内容

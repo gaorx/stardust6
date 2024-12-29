@@ -10,6 +10,7 @@ import (
 type Generator struct {
 	middlewares []Middleware
 	entries     []entry
+	files       []*File
 	logger      Logger
 }
 
@@ -18,6 +19,8 @@ type entry struct {
 	handler     Handler
 	middlewares []Middleware
 }
+
+var _ Interface = (*Generator)(nil)
 
 // New 创建一个代码生成器
 func New() *Generator {
@@ -39,8 +42,13 @@ func (g *Generator) Use(middlewares ...Middleware) *Generator {
 	return g
 }
 
+// Sub 通过一个dirname生成新的Generator，在其下的所有代码生成都会在这个dirname下
+func (g *Generator) Sub(dirname string) Interface {
+	return newSubGenerator(g, dirname)
+}
+
 // Add 添加一个生成器
-func (g *Generator) Add(name string, handler Handler, middlewares ...Middleware) *Generator {
+func (g *Generator) Add(name string, handler Handler, middlewares ...Middleware) Interface {
 	e := entry{
 		name:        name,
 		handler:     handler,
@@ -50,12 +58,50 @@ func (g *Generator) Add(name string, handler Handler, middlewares ...Middleware)
 	return g
 }
 
+// AddFile 加入一个文件
+func (g *Generator) AddFile(f *File) Interface {
+	if f == nil {
+		return g
+	}
+	g.files = append(g.files, f.Clone())
+	return g
+}
+
+// AddFiles 加入多个文件
+func (g *Generator) AddFiles(files []*File) Interface {
+	for _, f := range files {
+		g.AddFile(f)
+	}
+	return g
+}
+
+// Also 在当前生成器上执行一个函数，并返回当前生成器
+func (g *Generator) Also(f func(i Interface)) Interface {
+	if f != nil {
+		f(g)
+	}
+	return g
+}
+
+// AddModule 添加一个模块
+func (g *Generator) AddModule(m Module) Interface {
+	if m != nil {
+		m.Apply(g)
+	}
+	return g
+}
+
 // TryOne 尝试生成一个文件，但实际不写入
 func (g *Generator) TryOne(name string, current *File) (*File, error) {
 	e, ok := lo.Find(g.entries, func(e entry) bool {
 		return e.name == name
 	})
 	if !ok {
+		for _, f := range g.files {
+			if f.Name == name {
+				return f.Clone(), nil
+			}
+		}
 		return nil, sderr.With("file", name).Newf("not found generator")
 	}
 	middlewares := mergeMiddlewares([]Middleware{SetLogger(g.logger)}, g.middlewares, e.middlewares)
@@ -73,6 +119,9 @@ func (g *Generator) TryAll(currents Files) (Files, error) {
 			return nil, sderr.Wrap(err)
 		}
 		files = append(files, f)
+	}
+	for _, f := range g.files {
+		files = append(files, f.Clone())
 	}
 	return files, nil
 }
