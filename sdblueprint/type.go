@@ -7,6 +7,7 @@ const (
 	KString
 	KBool
 	KBytes
+	KEnum
 	KInt
 	KInt64
 	KUint
@@ -19,15 +20,10 @@ const (
 
 type Type interface {
 	Kind() TypeKind
+	Refs() Refs
+	WithRefs(langRefs map[string]string) Type
+	WithRef(lang, ref string) Type
 	Schema() Schema
 	Elem() Type
 	MakeArray() Type
-}
-
-type Schema interface {
-	Id() string
-	Names() Names
-	Properties() []*Property
-	Property(id string) *Property
-	AsType() Type
 }

@@ -66,8 +66,58 @@ func (idx *Index) Order() IndexOrder {
 	return idx.order
 }
 
+func (idx *Index) ColumnsSql(p *Project, tableId string) []string {
+	t := p.TableById(tableId)
+	if t == nil {
+		panic(sderr.Newf("table not found %s", tableId))
+	}
+	var sqlCols []string
+	for _, colId := range idx.cols {
+		col := t.Column(colId)
+		if col == nil {
+			panic(sderr.Newf("column not found %s", colId))
+		}
+		sqlCols = append(sqlCols, col.Names().Sql())
+	}
+	return sqlCols
+}
+
+func (idx *Index) ReferencedTableSql(p *Project) string {
+	if idx.refTable == "" {
+		return ""
+	}
+	t := p.TableById(idx.refTable)
+	if t == nil {
+		panic(sderr.Newf("table not found %s", idx.refTable))
+	}
+	return t.Names().Sql()
+}
+
+func (idx *Index) ReferencedColumnsSql(p *Project) []string {
+	if idx.refTable == "" {
+		return nil
+	}
+	t := p.TableById(idx.refTable)
+	if t == nil {
+		panic(sderr.Newf("table not found %s", idx.refTable))
+	}
+	var sqlCols []string
+	for _, colId := range idx.refCols {
+		col := t.Column(colId)
+		if col == nil {
+			panic(sderr.Newf("column not found %s", colId))
+		}
+		sqlCols = append(sqlCols, col.Names().Sql())
+	}
+	return sqlCols
+}
+
 func (idx *Index) asBuilder() *IndexBuilder {
 	return (*IndexBuilder)(idx)
+}
+
+func (idx *Index) postBuild(_ *Project) error {
+	return nil
 }
 
 func (b *IndexBuilder) Name(name string) *IndexBuilder {

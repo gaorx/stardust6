@@ -77,7 +77,7 @@ func JsonValueOr(s string, def any) sdjson.Value {
 	return r
 }
 
-// JsonObjectOr 解析到sdjson.Object，失败返回默认值
+// JsonObjectOr 解析到sdjson.Objects，失败返回默认值
 func JsonObjectOr(s string, def sdjson.Object) sdjson.Object {
 	r, err := JsonObjectE(s)
 	if err != nil {

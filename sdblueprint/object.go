@@ -5,14 +5,14 @@ import (
 	"github.com/samber/lo"
 	"maps"
 	"slices"
-	"strings"
 )
 
 type Object struct {
 	id         string
 	categories []string
 	names      names
-	anns       map[string][]string
+	refs       references
+	anns       annotations
 	description
 	props []*Property
 }
@@ -28,6 +28,10 @@ func (o *Object) Id() string {
 	return o.id
 }
 
+func (o *Object) Impl() SchemaImpl {
+	return SchemaObject
+}
+
 func (o *Object) Categories() []string {
 	return o.categories
 }
@@ -36,8 +40,12 @@ func (o *Object) Names() Names {
 	return &o.names
 }
 
+func (o *Object) Refs() Refs {
+	return &o.refs
+}
+
 func (o *Object) Anns() Anns {
-	return o.anns
+	return &o.anns
 }
 
 func (o *Object) Properties() []*Property {
@@ -64,6 +72,15 @@ func (o *Object) asBuilder() *ObjectBuilder {
 	return (*ObjectBuilder)(o)
 }
 
+func (o *Object) postBuild(_ *Project) error {
+	for _, prop := range o.props {
+		if err := prop.postBuild(nil); err != nil {
+			return sderr.Wrap(err)
+		}
+	}
+	return nil
+}
+
 func (b *ObjectBuilder) Id(id string) *ObjectBuilder {
 	b.id = id
 	return b
@@ -74,19 +91,26 @@ func (b *ObjectBuilder) Categories(categories ...string) *ObjectBuilder {
 	return b
 }
 
-func (b *ObjectBuilder) Names(langAndNames ...string) *ObjectBuilder {
-	b.names.add(langAndNames)
+func (b *ObjectBuilder) Names(langNames map[string]string) *ObjectBuilder {
+	b.names.add(langNames)
 	return b
 }
 
+func (b *ObjectBuilder) Name(lang, name string) *ObjectBuilder {
+	return b.Names(map[string]string{lang: name})
+}
+
+func (b *ObjectBuilder) Refs(langRefs map[string]string) *ObjectBuilder {
+	b.refs.add(langRefs)
+	return b
+}
+
+func (b *ObjectBuilder) Ref(lang, ref string) *ObjectBuilder {
+	return b.Refs(map[string]string{lang: ref})
+}
+
 func (b *ObjectBuilder) Ann(lang string, ann ...string) *ObjectBuilder {
-	if lang == "" || len(ann) <= 0 {
-		return b
-	}
-	if b.anns == nil {
-		b.anns = map[string][]string{}
-	}
-	b.anns[strings.ToLower(lang)] = ann
+	b.anns.add(lang, ann)
 	return b
 }
 
@@ -181,9 +205,13 @@ func (b *ObjectBuilder) build(c *buildContext) (*Object, error) {
 		names: names{
 			id:       b.id,
 			names:    maps.Clone(b.names.names),
-			defaults: c.options.TableNamers,
+			defaults: c.project.namersSchema,
 		},
-		anns:        maps.Clone(b.anns),
+		refs: references{
+			base: b.refs.base,
+			refs: maps.Clone(b.refs.refs),
+		},
+		anns:        annotations{anns: maps.Clone(b.anns.anns)},
 		description: b.description,
 		props:       newProps,
 	}, nil

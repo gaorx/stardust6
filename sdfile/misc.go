@@ -58,3 +58,16 @@ func FirstExists(filenames ...string) string {
 	}
 	return ""
 }
+
+// FirstExistsAbs 返回第一个存在的文件的绝对路径
+func FirstExistsAbs(filenames ...string) string {
+	fn := FirstExists(filenames...)
+	if fn == "" {
+		return ""
+	}
+	abs, err := filepath.Abs(fn)
+	if err != nil {
+		return ""
+	}
+	return abs
+}

@@ -3,15 +3,13 @@ package sdblueprint
 import (
 	"github.com/gaorx/stardust6/sderr"
 	"maps"
-	"strings"
 )
 
 type Property struct {
 	id    string
 	typ   Type
 	names names
-	sigs  map[string]Sig
-	anns  map[string][]string
+	anns  annotations
 	description
 	dbAttrs
 	refId string
@@ -30,20 +28,59 @@ var (
 	_ builder[*Property] = (*PropertyBuilder)(nil)
 )
 
+func (p *Property) Id() string {
+	return p.id
+}
+
+func (p *Property) Type() Type {
+	return p.typ
+}
+
 func (p *Property) Names() Names {
 	return &p.names
 }
 
-func (p *Property) Types() Sigs {
-	return p.sigs
+func (p *Property) Anns() Anns {
+	return &p.anns
 }
 
-func (p *Property) Anns() Anns {
-	return p.anns
+func (p *Property) Doc() string {
+	return p.doc
+}
+
+func (p *Property) Comment() string {
+	return p.comment
+}
+
+func (p *Property) Hint() string {
+	return p.hint
+}
+
+func (p *Property) Placeholder() string {
+	return p.placeholder
+}
+
+func (p *Property) AutoIncr() bool {
+	return p.autoIncr
+}
+
+func (p *Property) Nullable() bool {
+	return p.nullable
+}
+
+func (p *Property) DefaultValue() any {
+	return p.defaultValue
 }
 
 func (p *Property) asBuilder() *PropertyBuilder {
 	return (*PropertyBuilder)(p)
+}
+
+func (p *Property) postBuild(proj *Project) error {
+	if err := resolveType(proj, p.typ); err != nil {
+		return sderr.Wrap(err)
+	}
+	return nil
 }
 
 func (b *PropertyBuilder) Id(id string) *PropertyBuilder {
@@ -51,34 +88,17 @@ func (b *PropertyBuilder) Id(id string) *PropertyBuilder {
 	return b
 }
 
-func (b *PropertyBuilder) Names(langAndNames ...string) *PropertyBuilder {
-	b.names.add(langAndNames)
+func (b *PropertyBuilder) Names(langNames map[string]string) *PropertyBuilder {
+	b.names.add(langNames)
 	return b
 }
 
-func (b *PropertyBuilder) Sigs(langAndSigs ...string) *PropertyBuilder {
-	if len(langAndSigs) <= 0 {
-		return b
-	}
-	if b.sigs == nil {
-		b.sigs = map[string]Sig{}
-	}
-	for lang, v := range makeLangMap(langAndSigs) {
-		if lang != "" && v != "" {
-			b.sigs[strings.ToLower(lang)] = SigOf(v)
-		}
-	}
-	return b
+func (b *PropertyBuilder) Name(lang, name string) *PropertyBuilder {
+	return b.Names(map[string]string{lang: name})
 }
 
-func (b *PropertyBuilder) Ann(lang string, anns ...string) *PropertyBuilder {
-	if lang == "" || len(anns) <= 0 {
-		return b
-	}
-	if b.anns == nil {
-		b.anns = map[string][]string{}
-	}
-	b.anns[strings.ToLower(lang)] = anns
+func (b *PropertyBuilder) Ann(lang string, ann ...string) *PropertyBuilder {
+	b.anns.add(lang, ann)
 	return b
 }
 
@@ -119,6 +139,11 @@ func (b *PropertyBuilder) Index() *PropertyBuilder {
 
 func (b *PropertyBuilder) Unique() *PropertyBuilder {
 	b.indexKind = IndexUnique
+	return b
+}
+
+func (b *PropertyBuilder) FullText() *PropertyBuilder {
+	b.indexKind = IndexFullText
 	return b
 }
 
@@ -166,36 +191,8 @@ func (b *PropertyBuilder) deref(c *buildContext) error {
 	if b.typ == nil {
 		b.typ = refProp.typ
 	}
-	if len(refProp.names.names) > 0 {
-		if b.names.names == nil {
-			b.names.names = map[string]string{}
-		}
-		for lang, name := range refProp.names.names {
-			if _, ok := b.names.names[lang]; !ok {
-				b.names.names[lang] = name
-			}
-		}
-	}
-	if len(refProp.sigs) > 0 {
-		if b.sigs == nil {
-			b.sigs = map[string]Sig{}
-		}
-		for lang, typ := range refProp.sigs {
-			if _, ok := b.sigs[lang]; !ok {
-				b.sigs[lang] = typ
-			}
-		}
-	}
-	if len(refProp.anns) > 0 {
-		if b.anns == nil {
-			b.anns = map[string][]string{}
-		}
-		for lang, anns := range refProp.anns {
-			if _, ok := b.anns[lang]; !ok {
-				b.anns[lang] = anns
-			}
-		}
-	}
+	b.names.mergeOther(&refProp.names)
+	b.anns.mergeOther(&refProp.anns)
 	if b.doc == "" {
 		b.doc = refProp.doc
 	}
@@ -232,10 +229,9 @@ func (b *PropertyBuilder) build(c *buildContext) (*Property, error) {
 		names: names{
 			id:       b.id,
 			names:    maps.Clone(b.names.names),
-			defaults: c.options.ColumnNamers,
+			defaults: c.project.namersProp,
 		},
-		sigs:        maps.Clone(b.sigs),
-		anns:        maps.Clone(b.anns),
+		anns:        annotations{anns: maps.Clone(b.anns.anns)},
 		description: b.description,
 		dbAttrs:     b.dbAttrs,
 		refId:       b.refId,

@@ -147,7 +147,7 @@ func TestValueToObject(t *testing.T) {
 	newfr(V(0.1).ToObject(false)).with(t).hasErr()
 	newfr(V(Array{}).ToObject(false)).with(t).hasErr()
 
-	// Object
+	// Objects
 	newfr(V(Object{}).ToObject(false)).with(t).isObject()
 	newfr(V(Object(nil)).ToObject(false)).with(t).isNil()
 	newfr(V(map[string]any{"k1": "v1"}).ToObject(false)).with(t).isObject().deepEqual(Object{"k1": "v1"})

@@ -1,11 +1,14 @@
 package sdblueprint
 
-import (
-	"strings"
-)
+import "github.com/samber/lo"
 
 type Names interface {
 	Get(lang string, langAliases ...string) string
+	Langs() []string
+	Go() string
+	Sql() string
+	Json() string
+	Js() string
 }
 
 var _ Names = (*names)(nil)
@@ -29,31 +32,58 @@ func (ns *names) Get(lang string, langAliases ...string) string {
 	return ns.id
 }
 
-func (ns *names) add(langAndNames []string) {
-	if len(langAndNames) <= 0 {
+func (ns *names) Langs() []string {
+	return makeLangs(lo.Keys(ns.names), lo.Keys(ns.defaults))
+}
+
+func (ns *names) Go() string {
+	return ns.Get("go")
+}
+
+func (ns *names) Sql() string {
+	return ns.Get("sql")
+}
+
+func (ns *names) Json() string {
+	return ns.Get("json", "js")
+}
+
+func (ns *names) Js() string {
+	return ns.Get("js", "json")
+}
+
+func (ns *names) add(names map[string]string) {
+	if len(names) <= 0 {
 		return
 	}
-	for lang, v := range makeLangMap(langAndNames) {
-		if ns.names == nil {
-			ns.names = make(map[string]string)
+	for lang, name := range names {
+		if lang != "" && name != "" {
+			if ns.names == nil {
+				ns.names = map[string]string{}
+			}
+			ns.names[lang] = name
 		}
-		ns.names[lang] = v
 	}
 }
 
-func findLangValue[V string | []string | Namer | Sig](m map[string]V, langs []string) V {
-	var zero V
-	if len(langs) <= 0 {
-		return zero
+func (ns *names) mergeOther(other *names) {
+	if len(other.names) <= 0 {
+		return
 	}
-	for _, lang := range langs {
-		for k, v := range m {
-			if k != "" && lang != "" {
-				if strings.ToLower(k) == strings.ToLower(lang) {
-					return v
-				}
-			}
+	if ns.names == nil {
+		ns.names = map[string]string{}
+	}
+	for lang, otherName := range other.names {
+		if _, ok := ns.names[lang]; !ok {
+			ns.names[lang] = otherName
 		}
 	}
-	return zero
+}
+
+func mergeNamers(m, other map[string]Namer) {
+	for lang, namer := range other {
+		if _, ok := m[lang]; !ok {
+			m[lang] = namer
+		}
+	}
 }

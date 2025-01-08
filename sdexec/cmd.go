@@ -12,6 +12,7 @@ type Cmd struct {
 	Name string
 	Args []string
 	Env
+	Stdin   []byte
 	Timeout time.Duration
 }
 
@@ -73,4 +74,15 @@ func (cmd *Cmd) SetVars(vars map[string]string) *Cmd {
 func (cmd *Cmd) SetTimeout(timeout time.Duration) *Cmd {
 	cmd.Timeout = timeout
 	return cmd
+}
+
+// SetStdin 设置输入数据
+func (cmd *Cmd) SetStdin(data []byte) *Cmd {
+	cmd.Stdin = data
+	return cmd
+}
+
+// SetStdinString 设置输入数据
+func (cmd *Cmd) SetStdinString(data string) *Cmd {
+	return cmd.SetStdin([]byte(data))
 }

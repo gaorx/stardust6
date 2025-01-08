@@ -45,7 +45,7 @@ func JsonValue(s string) sdjson.Value {
 	return JsonValueOr(s, sdjson.V(nil))
 }
 
-// JsonObject 解析到sdjson.Object，失败返回nil
+// JsonObject 解析到sdjson.Objects，失败返回nil
 func JsonObject(s string) sdjson.Object {
 	return JsonObjectOr(s, nil)
 }

@@ -242,6 +242,14 @@ func (c *Context) If(b bool, v any) *Context {
 	return c
 }
 
+// Iff 如果条件为真，打印格式化数据
+func (c *Context) Iff(b bool, format string, a ...any) *Context {
+	if b {
+		c.Printf(format, a...)
+	}
+	return c
+}
+
 // IfElse 如果条件为真，打印v1，否则打印v2
 func (c *Context) IfElse(b bool, v1, v2 any) *Context {
 	if b {

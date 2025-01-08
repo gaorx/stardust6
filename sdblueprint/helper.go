@@ -1,7 +1,6 @@
 package sdblueprint
 
 import (
-	"github.com/gaorx/stardust6/sdstrings"
 	"github.com/samber/lo"
 	"strings"
 )
@@ -40,16 +39,50 @@ func makePropIdsStr(schemaId string, propIds []string) string {
 	return strings.Join(refPropIds, ",")
 }
 
-func makeLangMap(langAndValues []string) map[string]string {
-	langMap := make(map[string]string)
-	if len(langAndValues) <= 0 {
-		return langMap
+func findLangValue[V string | []string | Namer](m map[string]V, langs []string) V {
+	var zero V
+	if len(langs) <= 0 {
+		return zero
 	}
-	for _, langAndValue := range langAndValues {
-		lang, value := sdstrings.Split2s(langAndValue, ":")
-		if lang != "" && value != "" {
-			langMap[lang] = value
+	for _, lang := range langs {
+		for k, v := range m {
+			if k != "" && lang != "" {
+				if strings.ToLower(k) == strings.ToLower(lang) {
+					return v
+				}
+			}
 		}
 	}
-	return langMap
+	return zero
+}
+
+func lastStringOf(ss []string) string {
+	if len(ss) <= 0 {
+		return ""
+	}
+	return ss[len(ss)-1]
+}
+
+func ensurePrefix(s string, prefix string) string {
+	if s == "" {
+		return ""
+	}
+	if strings.HasPrefix(s, prefix) {
+		return s
+	}
+	return prefix + s
+}
+
+func trimAPIPath(s string) string {
+	if s == "" {
+		return ""
+	}
+	return strings.Trim(s, "/")
+}
+
+func makeLangs(langs1 []string, langs2 []string) []string {
+	langs := make([]string, 0)
+	langs = append(langs, langs1...)
+	langs = append(langs, langs2...)
+	return lo.Uniq(langs)
 }

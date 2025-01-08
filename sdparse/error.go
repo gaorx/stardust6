@@ -98,7 +98,7 @@ func JsonValueE(s string) (sdjson.Value, error) {
 	return sdjson.UnmarshalValueString(s)
 }
 
-// JsonObjectE 解析到sdjson.Object，失败返回错误
+// JsonObjectE 解析到sdjson.Objects，失败返回错误
 func JsonObjectE(s string) (sdjson.Object, error) {
 	jv, err := JsonValueE(s)
 	if err != nil {

@@ -34,3 +34,23 @@ func FinalNewline() Middleware {
 		}
 	}
 }
+
+// FormatSource 格式化代码的中间件，通过一组selectors按顺序试探，使用第一个发现的formatter
+func FormatSource(selectors ...FormatterSelector) Middleware {
+	return func(c *Context, next Handler) {
+		next(c)
+		var formatter Formatter
+		for _, selector := range selectors {
+			formatter = selector.SelectFormatter(c)
+			if formatter != nil {
+				break
+			}
+		}
+		if formatter != nil {
+			formatted, err := formatter(c.BufferedText())
+			if err == nil {
+				c.Clear().Print(formatted)
+			}
+		}
+	}
+}

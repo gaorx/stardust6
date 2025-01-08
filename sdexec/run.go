@@ -20,6 +20,9 @@ func (cmd *Cmd) New() *exec.Cmd {
 		}
 		cmd1.Env = env1
 	}
+	if len(cmd.Stdin) > 0 {
+		cmd1.Stdin = bytes.NewReader(cmd.Stdin)
+	}
 	return cmd1
 }
 

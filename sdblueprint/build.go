@@ -2,71 +2,78 @@ package sdblueprint
 
 import (
 	"github.com/gaorx/stardust6/sderr"
-	"github.com/samber/lo"
 )
 
-func Build(builder func(*ProjectBuilder), opts *Options) (*Project, error) {
-	c := newBuildContext(opts)
+func Build(builder func(*ProjectBuilder)) (*Project, error) {
+	c := newBuildContext()
+	c.project.ensureDefault()
+
+	// build
 	builder(&c.project)
+
+	// setup generators
+	for _, bg := range c.project.generators {
+		bg.Setup(&c.project)
+	}
+
+	// add default post hooks
+	c.project.SchemaRefs(ByAll(), defaultSchemaRefs)
+
+	// prepare
 	if err := c.project.prepare(c); err != nil {
 		return nil, sderr.Wrap(err)
 	}
+
+	// build
 	p, err := c.project.build(c)
 	if err != nil {
 		return nil, sderr.Wrap(err)
 	}
+
+	// post build
+	if err := p.postBuild(p); err != nil {
+		return nil, sderr.Wrap(err)
+	}
+
+	// post do
+	if len(p.postHooks) > 0 {
+		for _, hook := range p.postHooks {
+			if err := hook(p); err != nil {
+				return nil, sderr.Wrap(err)
+			}
+		}
+	}
 	return p, nil
 }
 
-func MustBuild(builder func(*ProjectBuilder), opts *Options) *Project {
-	p, err := Build(builder, opts)
+func MustBuild(builder func(*ProjectBuilder)) *Project {
+	p, err := Build(builder)
 	if err != nil {
 		panic(err)
 	}
 	return p
 }
 
-func NewObject(builder func(*ObjectBuilder), opts *Options) (*Object, error) {
-	p, err := Build(func(b *ProjectBuilder) {
-		b.Object(builder)
-	}, opts)
-	if err != nil {
-		return nil, sderr.Wrap(err)
-	}
-	if len(p.objects) != 1 {
-		return nil, sderr.Newf("expect one object")
-	}
-	return p.objects[0], nil
+type buildable interface {
+	postBuild(p *Project) error
 }
 
-func MustObject(builder func(*ObjectBuilder), opts *Options) *Object {
-	o, err := NewObject(builder, opts)
-	if err != nil {
-		panic(err)
-	}
-	return o
-}
-
-type builder[T any] interface {
+type builder[T buildable] interface {
 	prepare(c *buildContext) error
 	build(c *buildContext) (T, error)
 }
 
 type buildContext struct {
 	project               ProjectBuilder
-	options               Options
 	buildingTable         *TableBuilder
 	buildingObject        *ObjectBuilder
 	buildingProperty      *PropertyBuilder
 	buildingPropertyDepth int
 }
 
-func newBuildContext(opts *Options) *buildContext {
-	opts1 := lo.FromPtr(opts)
-	opts1.ensureDefault()
+func newBuildContext() *buildContext {
 	return &buildContext{
 		project: ProjectBuilder{},
-		options: opts1,
 	}
 }
 

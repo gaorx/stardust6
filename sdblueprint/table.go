@@ -4,14 +4,14 @@ import (
 	"github.com/gaorx/stardust6/sderr"
 	"github.com/samber/lo"
 	"maps"
-	"strings"
 )
 
 type Table struct {
 	id         string
 	categories []string
 	names      names
-	anns       map[string][]string
+	refs       references
+	anns       annotations
 	description
 	cols    []*Property
 	indexes []*Index
@@ -28,6 +28,10 @@ func (t *Table) Id() string {
 	return t.id
 }
 
+func (t *Table) Impl() SchemaImpl {
+	return SchemaTable
+}
+
 func (t *Table) Categories() []string {
 	return t.categories
 }
@@ -36,8 +40,20 @@ func (t *Table) Names() Names {
 	return &t.names
 }
 
+func (t *Table) Comment() string {
+	return t.comment
+}
+
+func (t *Table) Doc() string {
+	return t.doc
+}
+
+func (t *Table) Refs() Refs {
+	return &t.refs
+}
+
 func (t *Table) Anns() Anns {
-	return t.anns
+	return &t.anns
 }
 
 func (t *Table) Columns() []*Property {
@@ -67,12 +83,30 @@ func (t *Table) Property(id string) *Property {
 	return t.Column(id)
 }
 
+func (t *Table) Indexes() []*Index {
+	return t.indexes
+}
+
 func (t *Table) asBuilder() *TableBuilder {
 	return (*TableBuilder)(t)
 }
 
 func (t *Table) AsType() Type {
 	return schemaType{t}
+}
+
+func (t *Table) postBuild(p *Project) error {
+	for _, col := range t.cols {
+		if err := col.postBuild(p); err != nil {
+			return sderr.Wrap(err)
+		}
+	}
+	for _, idx := range t.indexes {
+		if err := idx.postBuild(p); err != nil {
+			return sderr.Wrap(err)
+		}
+	}
+	return nil
 }
 
 func (b *TableBuilder) Id(id string) *TableBuilder {
@@ -85,19 +119,26 @@ func (b *TableBuilder) Categories(categories ...string) *TableBuilder {
 	return b
 }
 
-func (b *TableBuilder) Names(langAndNames ...string) *TableBuilder {
-	b.names.add(langAndNames)
+func (b *TableBuilder) Names(langNames map[string]string) *TableBuilder {
+	b.names.add(langNames)
 	return b
 }
 
+func (b *TableBuilder) Name(lang, name string) *TableBuilder {
+	return b.Names(map[string]string{lang: name})
+}
+
+func (b *TableBuilder) Refs(langRefs map[string]string) *TableBuilder {
+	b.refs.add(langRefs)
+	return b
+}
+
+func (b *TableBuilder) Ref(lang, ref string) *TableBuilder {
+	return b.Refs(map[string]string{lang: ref})
+}
+
 func (b *TableBuilder) Ann(lang string, ann ...string) *TableBuilder {
-	if lang == "" || len(ann) <= 0 {
-		return b
-	}
-	if b.anns == nil {
-		b.anns = map[string][]string{}
-	}
-	b.anns[strings.ToLower(lang)] = ann
+	b.anns.add(lang, ann)
 	return b
 }
 
@@ -285,16 +326,19 @@ func (b *TableBuilder) build(c *buildContext) (*Table, error) {
 		}
 		newIndexes = append(newIndexes, idx1)
 	}
-
 	return &Table{
 		id:         b.id,
 		categories: b.categories,
 		names: names{
 			id:       b.id,
 			names:    maps.Clone(b.names.names),
-			defaults: c.options.TableNamers,
+			defaults: c.project.namersSchema,
 		},
-		anns:        maps.Clone(b.anns),
+		refs: references{
+			base: b.refs.base,
+			refs: maps.Clone(b.refs.refs),
+		},
+		anns:        annotations{anns: maps.Clone(b.anns.anns)},
 		description: b.description,
 		cols:        newCols,
 		indexes:     newIndexes,
